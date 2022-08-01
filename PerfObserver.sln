@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.2.32616.157
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PerfObserver", "PerfObserver.csproj", "{B4D95A98-D8EE-436D-A308-9CFA9D8A96A5}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestMethods", "..\TestMethods\TestMethods.csproj", "{26AC3454-C19F-4E51-9509-5D543769E7EC}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{B4D95A98-D8EE-436D-A308-9CFA9D8A96A5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B4D95A98-D8EE-436D-A308-9CFA9D8A96A5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B4D95A98-D8EE-436D-A308-9CFA9D8A96A5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B4D95A98-D8EE-436D-A308-9CFA9D8A96A5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{26AC3454-C19F-4E51-9509-5D543769E7EC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{26AC3454-C19F-4E51-9509-5D543769E7EC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{26AC3454-C19F-4E51-9509-5D543769E7EC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{26AC3454-C19F-4E51-9509-5D543769E7EC}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {092F185C-DC39-4283-837D-192211AB996D}
+	EndGlobalSection
+EndGlobal
