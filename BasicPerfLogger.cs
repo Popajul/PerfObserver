@@ -16,7 +16,7 @@ namespace PerfObserver
             {
                result = methodInfo.Invoke(instance, methodParameters);
             }
-            catch (ArgumentException e)
+            catch (ArgumentException)
             {
                 throw new ArgumentException("ERROR_INVALID_METHODS_PARAMETERS");
             }
