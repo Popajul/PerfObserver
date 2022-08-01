@@ -9,17 +9,17 @@ namespace PerfObserver
             var methodInfo = MethodInfoAndInstanceRecover.GetMethodInfo(targetType, methodName, parametersTypes);
             var instance = MethodInfoAndInstanceRecover.GetInstanceForInvokingMethod(targetType, methodInfo, ctorParameters);
 
-            object? result = null;
+            object? result;
             var sw = new Stopwatch();
             sw.Start();
             try
             {
                result = methodInfo.Invoke(instance, methodParameters);
             }
-            catch (Exception e)
+            catch (ArgumentException e)
             {
                 Console.WriteLine(e.StackTrace);
-                throw new Exception("ERROR_INVALID_METHODS_PARAMETERS");
+                throw new ArgumentException("ERROR_INVALID_METHODS_PARAMETERS");
             }
             sw.Stop();
             Console.WriteLine($"PERF --- Called Method Name : {methodInfo.Name} || elapsedTime : {sw.ElapsedMilliseconds} || return : {result ?? "void"}");
