@@ -16,7 +16,7 @@ namespace PerfObserver
         /// <exception cref="Exception"> </exception>
         internal static MethodInfo GetMethodInfo(Type targetType, string methodName,Type[]? parametersTypes = null)
         {
-            parametersTypes ??= new Type[0];
+            parametersTypes ??= Array.Empty<Type>();
 
             // Recover Method Info
             return targetType.GetMethod(methodName, bindingFlags, parametersTypes) ?? throw new Exception("ERROR_RECOVERING_METHOD_INFO");

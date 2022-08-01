@@ -1,35 +1,52 @@
-﻿using System.Globalization;
-using System.Reflection;
+﻿
 using TestMethods;
 
 namespace PerfObserver
 {
-    internal class Program
+    /// <summary>
+    /// Point d'entrée Temporaire du programme afin de tester ces fonctionalité en cours de developpement
+    /// </summary>
+    internal static class Program
     {
-        static void Main(string[] args)
+        static void Main()
         {
-            // Test with public noin static method
+            // Test with private non static method
             Type targetType = typeof(Arithmetic) ?? throw new Exception("");
             string methodName = "IsEven";
-            object[] ctorParameters = new object[] { 39 };
+            object[]? ctorParameters = new object[] { 39 };
             BasicPerfLogger.SimplylogPerf(targetType, methodName, ctorParameters);
 
-            // Test with Static private Method and method's Parameters
+            // Test with Static public Method and method's Parameters
             ctorParameters = null;
             var parametersTypes = new Type[] { typeof(string) };
             var methodParameters = new object[] { "5" };
             BasicPerfLogger.SimplylogPerf(targetType, methodName, ctorParameters, parametersTypes, methodParameters);
 
             // Test With invalid Method Name
-            /*methodName = "invalid";
-            BasicPerfLogger.SimplylogPerf(targetType, methodName, ctorParameters, parametersTypes, methodParameters);*/
+            methodName = "invalid";
+            try
+            {
+                BasicPerfLogger.SimplylogPerf(targetType, methodName, ctorParameters, parametersTypes, methodParameters);
+            }
+            catch (Exception e )
+            {
+                Console.WriteLine(e.Message);
+            }
+
 
             // test with invalid Parameters
-            /*methodParameters = new object[] {5};
-            BasicPerfLogger.SimplylogPerf(targetType, methodName, ctorParameters, parametersTypes, methodParameters);*/
+            methodName = "IsEven";
+            methodParameters = new object[] {5};
+            try
+            {
+                BasicPerfLogger.SimplylogPerf(targetType, methodName, ctorParameters, parametersTypes, methodParameters);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.Message);
+            }
 
             // Test with void return Method
-
             targetType = typeof(Arithmetic) ?? throw new Exception("");
             methodName = "LogIsEven";
             ctorParameters = new object[] { 39 };
