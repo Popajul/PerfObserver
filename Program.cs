@@ -24,6 +24,8 @@ namespace PerfObserver
 
             // ParameterTypes permet de distinguer plusieurs signature d'une même méthode
             var parameterTypes = new Type[] { };
+
+            // Récupération de la méthode à tester
             MethodInfo? methodInfo = targetType.GetMethod("IsEven", bindingFlags, parameterTypes);
 
             // Si la méthode est static l'instance est le targetType sinon il faut la créér en utilisant 
