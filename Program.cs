@@ -14,19 +14,19 @@ namespace PerfObserver
             Type targetType = typeof(Arithmetic) ?? throw new Exception("");
             string methodName = "IsEven";
             object[]? ctorParameters = new object[] { 39 };
-            BasicPerfLogger.SimplylogPerf(targetType, methodName, ctorParameters);
+            BasicPerfLogger.SimplyLogPerf(targetType, methodName, ctorParameters);
 
             // Test with Static public Method and method's Parameters
             ctorParameters = null;
             var parametersTypes = new Type[] { typeof(string) };
             var methodParameters = new object[] { "5" };
-            BasicPerfLogger.SimplylogPerf(targetType, methodName, ctorParameters, parametersTypes, methodParameters);
+            BasicPerfLogger.SimplyLogPerf(targetType, methodName, ctorParameters, parametersTypes, methodParameters);
 
             // Test With invalid Method Name
             methodName = "invalid";
             try
             {
-                BasicPerfLogger.SimplylogPerf(targetType, methodName, ctorParameters, parametersTypes, methodParameters);
+                BasicPerfLogger.SimplyLogPerf(targetType, methodName, ctorParameters, parametersTypes, methodParameters);
             }
             catch (Exception e )
             {
@@ -39,7 +39,7 @@ namespace PerfObserver
             methodParameters = new object[] {5};
             try
             {
-                BasicPerfLogger.SimplylogPerf(targetType, methodName, ctorParameters, parametersTypes, methodParameters);
+                BasicPerfLogger.SimplyLogPerf(targetType, methodName, ctorParameters, parametersTypes, methodParameters);
             }
             catch (Exception e)
             {
@@ -50,7 +50,7 @@ namespace PerfObserver
             targetType = typeof(Arithmetic) ?? throw new Exception("");
             methodName = "LogIsEven";
             ctorParameters = new object[] { 39 };
-            BasicPerfLogger.SimplylogPerf(targetType, methodName, ctorParameters);
+            BasicPerfLogger.SimplyLogPerf(targetType, methodName, ctorParameters);
 
 
         }
