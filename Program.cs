@@ -8,36 +8,34 @@ namespace PerfObserver
     {
         static void Main(string[] args)
         {
-            // input sur le target Type : ctorParameters object[] vide par defaut + targetType
-            // input sur la méthode à tester : parameterTypes -> object[] vide par default, methode Name
-            // recupérer une methode dans un projet
-
-
-            // la déclaration du type cible -> ajout d'une reference de projet 
-            
+            // Test with public noin static method
             Type targetType = typeof(Arithmetic) ?? throw new Exception("");
+            string methodName = "IsEven";
+            object[] ctorParameters = new object[] { 39 };
+            BasicPerfLogger.SimplylogPerf(targetType, methodName, ctorParameters);
 
-            // les bindingFlags permettre d'inclure les critères dans la recherche de la méthode  pour le type fourni
-            // On veut veur récupérer les méthodes static ou pas , public ou pas 
-            // Selon les cas à traiter 
-            var bindingFlags = BindingFlags.IgnoreCase | BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static;
+            // Test with Static private Method and method's Parameters
+            ctorParameters = null;
+            var parametersTypes = new Type[] { typeof(string) };
+            var methodParameters = new object[] { "5" };
+            BasicPerfLogger.SimplylogPerf(targetType, methodName, ctorParameters, parametersTypes, methodParameters);
 
-            // ParameterTypes permet de distinguer plusieurs signature d'une même méthode
-            var parameterTypes = new Type[] { };
+            // Test With invalid Method Name
+            /*methodName = "invalid";
+            BasicPerfLogger.SimplylogPerf(targetType, methodName, ctorParameters, parametersTypes, methodParameters);*/
 
-            // Récupération de la méthode à tester
-            MethodInfo? methodInfo = targetType.GetMethod("IsEven", bindingFlags, parameterTypes);
+            // test with invalid Parameters
+            /*methodParameters = new object[] {5};
+            BasicPerfLogger.SimplylogPerf(targetType, methodName, ctorParameters, parametersTypes, methodParameters);*/
 
-            // Si la méthode est static l'instance est le targetType sinon il faut la créér en utilisant 
-            object instance = targetType;
-            if (!methodInfo.IsStatic)
-            {
-                object[] ctorParameters = new object[] {4};
-                // création de l'instance par l'assembly : ignoreCase
-                instance =  targetType.Assembly.CreateInstance(targetType.FullName, true, bindingFlags, null, ctorParameters, null, null);
-            }
+            // Test with void return Method
 
-            var result = methodInfo.Invoke(instance, new object[] { "4" });
+            targetType = typeof(Arithmetic) ?? throw new Exception("");
+            methodName = "LogIsEven";
+            ctorParameters = new object[] { 39 };
+            BasicPerfLogger.SimplylogPerf(targetType, methodName, ctorParameters);
+
+
         }
     }
 }
