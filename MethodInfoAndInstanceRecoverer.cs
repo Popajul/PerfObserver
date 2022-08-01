@@ -2,7 +2,7 @@
 
 namespace PerfObserver
 {
-    internal static class MethodInfoAndInstanceRecover
+    internal static class MethodInfoAndInstanceRecoverer
     {
         private static readonly BindingFlags bindingFlags = BindingFlags.IgnoreCase | BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static;
 
@@ -21,7 +21,7 @@ namespace PerfObserver
             // Recover Method Info
             return targetType.GetMethod(methodName, bindingFlags, parametersTypes) ?? throw new Exception("ERROR_RECOVERING_METHOD_INFO");
         }
-        public static object GetInstanceForInvokingMethod(Type targetType, MethodInfo methodInfo, object[]? ctorParameters = null)
+        internal static object GetHostingInstance(Type targetType, MethodInfo methodInfo, object[]? ctorParameters = null)
         {
             object instance = targetType;
             if (!methodInfo.IsStatic)
