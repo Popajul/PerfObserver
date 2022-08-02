@@ -1,4 +1,5 @@
-﻿using TestMethodsLibrary;
+﻿using System.Diagnostics;
+using TestMethodsLibrary;
 
 namespace PerfObserver
 {
@@ -74,7 +75,26 @@ namespace PerfObserver
 
             #endregion
             #region Test Statistics
+            // test sans parallelisme sur l'itération des sous processus
+            var sw = new Stopwatch();
+            sw.Start();
             BasicPerfLogger.LogProcessSampleStatistics(process_0);
+            sw.Stop();
+            Console.WriteLine($"Debug - TOTAL non // : {sw.ElapsedMilliseconds} ms");
+
+            // test avec parallelisme sur l'itération des sous processus
+
+            sw = new Stopwatch();
+            sw.Start();
+            BasicPerfLogger.LogProcessSampleStatisticsParallel(process_0);
+            sw.Stop();
+            Console.WriteLine($"Debug - TOTAL // : {sw.ElapsedMilliseconds} ms");
+
+
+            // environ 2,5 secondes d'avantage sur le parallelisme
+            // resultat coherent on s'attend dans ce cas précis à gagner tout au plus le temps le plus court des 2 processus de second niveau A savoir 
+            // 500ms * 5 = 2.5s
+            // le parallelisme joue parfaitement son rôle içi
             #endregion
         }
     }
