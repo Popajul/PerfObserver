@@ -2,7 +2,7 @@
 
 namespace PerfObserver
 {
-    internal static class BasicPerfLogger
+    public static class BasicPerfLogger
     {
         public static void SimplyLogPerf(Type targetType, string methodName, object[]? ctorParameters = null, Type[]? parametersTypes = null, object[]? methodParameters = null)
         {
