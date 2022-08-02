@@ -73,6 +73,9 @@ namespace PerfObserver
             BasicPerfLogger.LogProcessPerf(process_0);
 
             #endregion
+            #region Test Statistics
+            BasicPerfLogger.LogProcessSampleStatistics(process_0);
+            #endregion
         }
     }
 }
