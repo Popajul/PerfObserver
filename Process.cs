@@ -57,10 +57,12 @@ namespace PerfObserver
 
         internal Sample CreateSample(int sampleSize)
         {
-            Sample sample = new(this, sampleSize);
-            sample.SampleIndex = Samples.Count;
+            Sample sample = new(this, sampleSize)
+            {
+                SampleIndex = Samples.Count
+            };
 
-            for(int i = 0; i < sampleSize; i++)
+            for (int i = 0; i < sampleSize; i++)
                 sample.StopWatchValues.Add(this.Observe());
 
             sample.Statistics = new(sample);
