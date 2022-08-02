@@ -1,10 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using PerfObserver.Model;
 using System.Diagnostics;
-using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace PerfObserver
 {
@@ -23,6 +19,8 @@ namespace PerfObserver
             get { return _subProcesses; }
             
         }
+
+        internal List<Sample> Samples;
         internal Process(object instance, MethodInfo methodInfo, object[]? parameters = null, Process? parent = null)
         {
             _instance = instance;
@@ -30,6 +28,7 @@ namespace PerfObserver
             _parameters = parameters;
             _subProcesses = new();
             Parent = parent;
+            Samples = new();
             _sw = new();
         }
 
@@ -54,6 +53,20 @@ namespace PerfObserver
             }
             
             return _sw.ElapsedMilliseconds;
+        }
+
+        internal Sample CreateSample(int sampleSize)
+        {
+            Sample sample = new(this, sampleSize);
+            sample.SampleIndex = Samples.Count;
+
+            for(int i = 0; i < sampleSize; i++)
+                sample.StopWatchValues.Add(this.Observe());
+
+            sample.Statistics = new(sample);
+
+            this.Samples.Add(sample);
+            return sample;
         }
     }
 }
