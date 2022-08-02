@@ -70,7 +70,6 @@ namespace PerfObserver
             }
             if(actions.Any())
                 Parallel.Invoke(actions.ToArray());
-
         }
     }
 
