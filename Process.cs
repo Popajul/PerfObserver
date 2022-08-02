@@ -40,17 +40,19 @@ namespace PerfObserver
 
         internal long Observe()
         {
-            _sw.Restart();
+            
             try
             {
+                _sw.Restart();
                 _ = _methodInfo.Invoke(_instance, _parameters);
+                _sw.Stop();
             }
             catch (ArgumentException e)
             {
                 Console.WriteLine(e.StackTrace);
                 throw new ArgumentException("ERROR_INVALID_METHODS_PARAMETERS");
             }
-            _sw.Stop();
+            
             return _sw.ElapsedMilliseconds;
         }
     }
