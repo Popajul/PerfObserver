@@ -20,7 +20,7 @@
             
             MinValue = sample.StopWatchValues.Min();
             MaxValue = sample.StopWatchValues.Max();
-            Process? sampleProcessParent = sample.Process.Parent;
+            Process sampleProcessParent = sample.Process.Parent;
             var parentSample = sampleProcessParent?.Samples.ElementAt(sample.SampleIndex);
             if (parentSample != null)
                 MainProcessusRatio = Math.Round(100 * (double)AverageTime / (double)parentSample.Statistics!.AverageTime , 2 );

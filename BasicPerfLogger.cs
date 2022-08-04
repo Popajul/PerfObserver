@@ -4,12 +4,12 @@ namespace PerfObserver
 {
     public static class BasicPerfLogger
     {
-        public static void SimplyLogPerf(Type targetType, string methodName, object[]? ctorParameters = null, Type[]? parametersTypes = null, object[]? methodParameters = null)
+        public static void SimplyLogPerf(Type targetType, string methodName, object[] ctorParameters = null, Type[] parametersTypes = null, object[] methodParameters = null)
         {
             var methodInfo = MethodInfoAndInstanceRecoverer.GetMethodInfo(targetType, methodName, parametersTypes);
             var instance = MethodInfoAndInstanceRecoverer.GetHostingInstance(targetType, methodInfo, ctorParameters);
 
-            object? result;
+            object result;
             var sw = new Stopwatch();
             sw.Start();
             try

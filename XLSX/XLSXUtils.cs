@@ -1,17 +1,15 @@
 ﻿using ExcelDataReader;
+using PerfObserver.Model;
 using PicoXLSX;
-using System;
-using System.Collections.Generic;
 using System.Data;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
-using static PicoXLSX.Style;
 
 namespace PerfObserver.XLSX
 {
     internal static class XlsxUtils
     {
+        // directory to complete with /Projects/ProjectName/ProcessusName or just /ProcessusName
+        internal static readonly string DIRECTORY_BASE = $"{Directory.GetCurrentDirectory()}/Workbook";
 
         /// <summary>
         /// Create a worbook from an existing template xlsx with a new workbookName
@@ -20,7 +18,7 @@ namespace PerfObserver.XLSX
         /// <param name="fileName"> fullPath for source file </param>
         /// <param name="workbookName"></param>
         /// <returns>Workbook</returns>
-        internal static Workbook CreateWorkbookFromXLSXFile(string sourceDirectory, string sourcefileName, string? workbookDirectory, string? workbookName)
+        private static Workbook CreateWorkbookFromXLSXFile(string sourceDirectory, string sourcefileName, string workbookDirectory, string workbookName)
         {
             // Checking
             // // check source directoryExist
@@ -64,9 +62,12 @@ namespace PerfObserver.XLSX
             Workbook workbook = new(workbookFullName, "tempsheetName");
 
             // get array from dataset
-            var tables = new DataTable[dataSet.Tables.Count];
-            dataSet.Tables.CopyTo(tables, 0);
+            var tablesCount = dataSet.Tables.Count;
 
+            var tables = new DataTable[tablesCount];
+            
+                dataSet.Tables.CopyTo(tables, 0);
+            
             int index = -1;
             foreach (var table in tables)
             {
@@ -253,26 +254,77 @@ namespace PerfObserver.XLSX
             }
         }
 
-        internal static void CreateProjectXLSXFile()
+        
+        private static Workbook GetWorkBookProcessFromXlsx(Process process)
         {
-            string projectDirectory = $"{Directory.GetCurrentDirectory()}/Projects";
-            const string fileName = "Projects.xlsx";
+            var processDirectory = DIRECTORY_BASE;
+            processDirectory += process.Project == null ? $"/{process._methodInfo.Name}" : $"/Projects/{process.Project!.Name}/{process._methodInfo.Name}";
+            var xlsxFileName = $"{process._methodInfo.Name}.xlsx";
 
-            Directory.CreateDirectory(projectDirectory);
-
-            Workbook workbook = new($"{projectDirectory}/{fileName}", "projects");
-
-            var currentWorksheet = workbook.CurrentWorksheet;
-            if (!Directory.Exists($"{projectDirectory}/{fileName}"))
+            // if file does not exists a FileNotFoudException is thrown
+            return XlsxUtils.CreateWorkbookFromXLSXFile(processDirectory, xlsxFileName, null, null);
+        }
+        private static List<SampleStatRow> GetSampleStatRowsFromWorkook(Workbook workbook)
+        {
+            List<SampleStatRow> list = new List<SampleStatRow>();
+            var statSheets = workbook.Worksheets.Where(w => w.SheetName.Contains("STAT")).ToList();
+            foreach (var sheet in statSheets)
             {
-                return;
-            }
+                var processName = sheet.SheetName.Split("_STAT").First();
+                var cells = sheet.Cells.Select(c => c.Value);
+                var firstRowData = cells.Where(c => c.CellAddress2.Row == 0).Select(c => (string)c.Value);
+                var subProcessNames = firstRowData.Where(v => v.Contains("Ratio"));
+                var numberOfSubProcess = subProcessNames.Count();
 
-            currentWorksheet.AddNextCell("ProjectGuid");
-            currentWorksheet.AddNextCell("ProjectName");
-            workbook.Save();
+                var cellsData = cells.Where(c => c.CellAddress2.Row != 0).Select(c => new { c.RowNumber, c.Value });
+                var dataRowCount = cellsData.Count() / firstRowData.Count();
+                // iterate on row data
+                IEnumerable<object> currentRawData;
+
+                for (int i = 1; i <= dataRowCount; i++)
+                {
+                    currentRawData = cellsData.Where(c => c.RowNumber == i).Select(c => c.Value);
+                    var dataStat = currentRawData.SkipLast(numberOfSubProcess);
+                    string sampleDateTime = (string)dataStat.ElementAt(0);
+                    int averageTime = Convert.ToInt32(dataStat.ElementAt(1));
+                    double standartDeviation = (double)dataStat.ElementAt(2);
+                    int minValue = Convert.ToInt32(dataStat.ElementAt(3));
+                    int maxValue = Convert.ToInt32(dataStat.ElementAt(4));
+
+                    var sublist = new List<SubProcessRatio>();
+                    var processRatioData = currentRawData.Except(dataStat);
+
+                    for (int j = 0; j < numberOfSubProcess; j++)
+                    {
+                        sublist.Add(new()
+                        {
+                            SubProcessName = subProcessNames.ElementAt(j).Replace("_MainProcessusRatio",""),
+                            MainProcessusRatio = (double)processRatioData.ElementAt(j)
+                        });
+                    }
+
+                    list.Add(new()
+                    {
+                        ProcessName = processName,
+                        AverageTime = averageTime,
+                        MaxValue = maxValue,
+                        MinValue = minValue,
+                        SubProcessRatio = sublist,
+                        SampleDateTime = sampleDateTime,
+                        StandartDeviation = standartDeviation
+
+                    });
+
+
+                }
+            }
+            return list;
         }
 
+        internal static List<SampleStatRow> GetSampleStatRowsFromProcess(Process process)
+        {
+            return GetSampleStatRowsFromWorkook(GetWorkBookProcessFromXlsx(process));
+        }
 
     }
 }
