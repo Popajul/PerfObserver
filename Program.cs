@@ -1,4 +1,6 @@
-﻿using System.Diagnostics;
+﻿using PerfObserver.Model;
+using PerfObserver.XLSX;
+using System.Diagnostics;
 using TestMethodsLibrary;
 
 namespace PerfObserver
@@ -29,7 +31,7 @@ namespace PerfObserver
             {
                 BasicPerfLogger.SimplyLogPerf(targetType, methodName, ctorParameters, parametersTypes, methodParameters);
             }
-            catch (Exception e )
+            catch (Exception e)
             {
                 Console.WriteLine(e.Message);
             }
@@ -37,7 +39,7 @@ namespace PerfObserver
 
             // test with invalid Parameters
             methodName = "IsEven";
-            methodParameters = new object[] {5};
+            methodParameters = new object[] { 5 };
             try
             {
                 BasicPerfLogger.SimplyLogPerf(targetType, methodName, ctorParameters, parametersTypes, methodParameters);
@@ -95,7 +97,31 @@ namespace PerfObserver
             // resultat coherent on s'attend dans ce cas précis à gagner tout au plus le temps le plus court des 2 processus de second niveau A savoir 
             // 500ms * 5 = 2.5s
             // le parallelisme joue parfaitement son rôle içi
-            #endregion
+            #endregion 
+
+            // Test Processus With 4 samples save in xlsx file
+            targetType = typeof(FakeMethods);
+           
+            factory = new(targetType, methodName_0);
+            process_0 = factory.CreateProcess();
+            factory = new(targetType, methodName_1_0);
+            _ = factory.CreateProcess(process_0);
+
+            factory = new(targetType, methodName_1_1);
+            process_1_1 = factory.CreateProcess(process_0);
+
+            factory = new(targetType, methodName_2_0);
+            _ = factory.CreateProcess(process_1_1);
+
+
+            var sampleSize = 50;
+            for(int i = 0; i < 30; i++)
+            {
+                process_0.CreateSampleForProcessAndSubProcess(sampleSize);
+            }
+            
+           
+            XlsxUtils.CreateProcessXLSXFile(process_0);
         }
     }
 }

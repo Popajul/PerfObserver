@@ -43,7 +43,7 @@ namespace PerfObserver
             sw.Start();
             var sample = process.CreateSample(SAMPLE_SIZE);
             var statistics = sample.Statistics;
-            Console.WriteLine($"Stat -_ Method Name : {process._methodInfo.Name} || AverageTime : {statistics!.AverageTimes} ms  || StandartDeviation : {statistics.StandartDeviation} ||depth : {depth}  || parent : {process.Parent?._methodInfo.Name ?? "none"} || MainProcessusRatio (%): {statistics.MainProcessusRatio?.ToString() ?? "none"}");
+            Console.WriteLine($"Stat -_ Method Name : {process._methodInfo.Name} || AverageTime : {statistics!.AverageTime} ms  || StandartDeviation : {statistics.StandartDeviation} ||depth : {depth}  || parent : {process.Parent?._methodInfo.Name ?? "none"} || MainProcessusRatio (%): {statistics.MainProcessusRatio?.ToString() ?? "none"}");
             sw.Stop();
             Console.WriteLine($"Debug - non // : {sw.ElapsedMilliseconds} ms");
             foreach (var proc in process.SubProcesses)
@@ -59,7 +59,7 @@ namespace PerfObserver
             sw.Start();
             var sample = process.CreateSample(SAMPLE_SIZE);
             var statistics = sample.Statistics;
-            Console.WriteLine($"Stat -_ Method Name : {process._methodInfo.Name} || AverageTime : {statistics!.AverageTimes} ms  || StandartDeviation : {statistics.StandartDeviation} ||depth : {depth}  || parent : {process.Parent?._methodInfo.Name ?? "none"} || MainProcessusRatio (%): {statistics.MainProcessusRatio?.ToString() ?? "none"}");
+            Console.WriteLine($"Stat -_ Method Name : {process._methodInfo.Name} || AverageTime : {statistics!.AverageTime} ms  || StandartDeviation : {statistics.StandartDeviation} ||depth : {depth}  || parent : {process.Parent?._methodInfo.Name ?? "none"} || MainProcessusRatio (%): {statistics.MainProcessusRatio?.ToString() ?? "none"}");
             sw.Stop();
             Console.WriteLine($"Debug - // : {sw.ElapsedMilliseconds} ms");
 
