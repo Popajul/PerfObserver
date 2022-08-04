@@ -116,8 +116,8 @@ namespace PerfObserver
             _ = factory.CreateProcess(process_1_1);
 
 
-            var sampleSize = 50;
-            for(int i = 0; i < 30; i++)
+            var sampleSize = 5;
+            for(int i = 0; i < 4; i++)
             {
                 process_0.CreateSampleForProcessAndSubProcess(sampleSize);
             }

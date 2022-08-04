@@ -6,6 +6,7 @@ using System.Data;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using static PicoXLSX.Style;
 
 namespace PerfObserver.XLSX
 {
@@ -130,7 +131,7 @@ namespace PerfObserver.XLSX
                 Directory.CreateDirectory(directory);
             }
 
-            directory += process._methodInfo.Name;
+            directory += $"/{process._methodInfo.Name}";
             Directory.CreateDirectory(directory);
 
             // get XLSX FullPath
@@ -166,6 +167,14 @@ namespace PerfObserver.XLSX
                 workbook.RemoveWorksheet(0);
             }
 
+            var style = new Style() { CurrentFont = new() { Bold = true } };
+            workbook.Worksheets.ForEach(s =>
+            {
+                s.Cells.Select(c=>c.Value).Where(c => c.CellAddress2.Row == 0 || c.CellAddress2.Column == 0).ToList().ForEach(c =>
+                {
+                    c.SetStyle(style);
+                });
+            });
             workbook.Save();
         }
 
