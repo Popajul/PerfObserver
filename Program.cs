@@ -59,10 +59,10 @@ namespace PerfObserver
             #region Test LogProcessPerf
             // Test Processus LogProcessPerf with depth 3 process
             targetType = typeof(FakeMethods);
-            string methodName_0 = "FakeMethod_Depth_0";
-            string methodName_1_0 = "FakeMethod_Depth_1_0";
-            string methodName_1_1 = "FakeMethod_Depth_1_1";
-            string methodName_2_0 = "FakeMethod_Depth_2_0";
+            string methodName_0 = "FakeMethod_0";
+            string methodName_1_0 = "FakeMethod_1_0";
+            string methodName_1_1 = "FakeMethod_1_1";
+            string methodName_2_0 = "FakeMethod_2_0";
             ProcessFactory factory = new(targetType, methodName_0);
             var process_0 = factory.CreateProcess();
             factory = new(targetType, methodName_1_0);
@@ -76,7 +76,7 @@ namespace PerfObserver
             BasicPerfLogger.LogProcessPerf(process_0);
 
             #endregion
-            #region Test Statistics
+            #region Test Statistics Sample
             // test sans parallelisme sur l'itération des sous processus
             var sw = new Stopwatch();
             sw.Start();
@@ -97,6 +97,8 @@ namespace PerfObserver
             // resultat coherent on s'attend dans ce cas précis à gagner tout au plus le temps le plus court des 2 processus de second niveau A savoir 
             // 500ms * 5 = 2.5s
             // le parallelisme joue parfaitement son rôle içi
+            // La partie non // va néanmoins être gardé pour l'instant car le multiThreading peut impacter les performances des processus cible si eux même l'utilise,
+            // une solution peut être de trouver le moyen de donner une priorité au processus cible dans l'acces au thread.  
             #endregion 
 
             // Test Processus With 4 samples save in xlsx file
