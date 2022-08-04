@@ -115,6 +115,8 @@ namespace PerfObserver.XLSX
             Console.WriteLine($"Creating XLSX file for process : {process._methodInfo.Name}");
             string WorkBookFolderName = "Workbook";
             string ProjectFolderName = "Projects";
+
+            // Create directories
             string workbookDirectory = $"{Directory.GetCurrentDirectory()}/{WorkBookFolderName}";
 
             Directory.CreateDirectory(workbookDirectory);
@@ -128,9 +130,14 @@ namespace PerfObserver.XLSX
                 Directory.CreateDirectory(directory);
             }
 
+            directory += process._methodInfo.Name;
+            Directory.CreateDirectory(directory);
+
             // get XLSX FullPath
             var wbFullName = $"{directory}/{process._methodInfo.Name}.xlsx";
 
+
+            // Get or create workbook and add data
             Workbook workbook;
             if (File.Exists(wbFullName))
             {
@@ -173,9 +180,10 @@ namespace PerfObserver.XLSX
             string sheet1Name = $"{process._methodInfo.Name}_STAT_{depth}";
             string sheet2Name = $"{process._methodInfo.Name}_SWVal_{depth}";
 
+            // set header row sheet 1
             List<string> sheet1HeaderNames = new string[] { "SampleDateTime", "AverageTime", "StandartDeviation", "MinValue", "MaxValue" }.ToList();
             sheet1HeaderNames.AddRange(process.SubProcesses.Select(p => $"{p._methodInfo.Name}_MainProcessusRatio"));
-            List<string> sheet2HeaderNames = process.Samples.Select(s => s.SampleDateTime).ToList();
+
 
             bool isNew = false;
             var firstWorksheet = workbook.Worksheets.FirstOrDefault(w => w.SheetName.Equals(sheet1Name));
