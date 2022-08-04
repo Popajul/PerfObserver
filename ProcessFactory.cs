@@ -1,4 +1,5 @@
-﻿using System;
+﻿using PerfObserver.Model;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -42,6 +43,7 @@ namespace PerfObserver
         /// <returns></returns>
         public Process CreateProcess(Process? parent = null)
         {
+            
             MethodInfo methodInfo = GetMethodInfo(_targetType, _methodName, _parametersTypes);
             object instance = GetHostingInstance(_targetType, methodInfo, _ctorParameters);
             Process process = new Process(instance, methodInfo, _methodParameters, parent);

@@ -20,7 +20,20 @@ namespace PerfObserver
             
         }
 
+        internal Project? Project;
+
         internal List<Sample> Samples;
+        internal Process(object instance, MethodInfo methodInfo, Project? project, object[]? parameters = null, Process? parent = null)
+        {
+            _instance = instance;
+            _methodInfo = methodInfo;
+            _parameters = parameters;
+            _subProcesses = new();
+            Parent = parent;
+            Samples = new();
+            _sw = new();
+            Project = project;
+        }
         internal Process(object instance, MethodInfo methodInfo, object[]? parameters = null, Process? parent = null)
         {
             _instance = instance;
@@ -69,6 +82,19 @@ namespace PerfObserver
 
             this.Samples.Add(sample);
             return sample;
+        }
+
+        internal void CreateSampleForProcessAndSubProcess(int sampleSize)
+        {
+            Console.WriteLine($"CreateSampleForProcessAndSubProcess : {this._methodInfo.Name}");
+            CreateSample(sampleSize);
+            var actions = new List<Action>();
+            foreach (Process proc in _subProcesses)
+            {
+                actions.Add(() => proc.CreateSampleForProcessAndSubProcess(sampleSize)); 
+            }
+            if (actions.Any())
+                Parallel.Invoke(actions.ToArray());
         }
     }
 }
