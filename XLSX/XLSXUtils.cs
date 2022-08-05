@@ -266,7 +266,7 @@ namespace PerfObserver.XLSX
         }
         private static List<SampleStatRow> GetSampleStatRowsFromWorkook(Workbook workbook)
         {
-            List<SampleStatRow> list = new List<SampleStatRow>();
+            List<SampleStatRow> list = new();
             var statSheets = workbook.Worksheets.Where(w => w.SheetName.Contains("STAT")).ToList();
             foreach (var sheet in statSheets)
             {

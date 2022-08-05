@@ -290,13 +290,13 @@ namespace PerfObserver.Charts
                 bool[] fills = dataSets.Select(d => false).ToArray();
                 IList<string> colors = new List<string>() { "black", "red", "blue", "green", "purple", "pink", "yellow" };
                 // Associer une couleur à chaque label de data set
-                Dictionary<string, string> colorsByLabel = new Dictionary<string, string>();
+                Dictionary<string, string> colorsByLabel = new ();
                 var colorIndex = 0;
                 dataSets.Select(d => d.Label).Distinct().ToList().ForEach(l =>
                 {
                     colorsByLabel.Add(l, colors.ElementAt(colorIndex));
                     colorIndex++;
-                    colorIndex = colorIndex % colors.Count();
+                    colorIndex %= colors.Count;
                 });
                 string[] borderColors = dataSets.Select(d => colorsByLabel.GetValueOrDefault(d.Label)).ToArray();
                 title = dataSets.First().Label;
