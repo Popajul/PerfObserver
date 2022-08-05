@@ -5,14 +5,10 @@ namespace PerfObserver.Charts
 {
     internal static class ChartsUtils
     {
-        // directory to complete with /Projects/ProjectName/ProcessusName or just /ProcessusName
         internal static readonly string DIRECTORY_BASE = $"{Directory.GetCurrentDirectory()}/Workbook";
-        internal static readonly int WIDTH = 2000;
-        internal static readonly int HEIGHT = 1200;
+        internal static readonly int WIDTH = 1000;
+        internal static readonly int HEIGHT = 600;
         internal static readonly string BACKGROUND_COLOR = "white";
-        internal static readonly bool FILL = false;
-        internal static readonly bool TITLE_DISPLAY = true;
-        internal static readonly int FONT_SIZE = 25;
 
         private static readonly string CHART_CONFIG_GENERAL_TEMPLATE =
             @"{
@@ -54,10 +50,11 @@ namespace PerfObserver.Charts
 
             var datasets = new List<string>();
 
-            string dataset = CHART_DATA_SETS_TEMPLATE;
 
+            string dataset;
             for (int i = 0; i < datasetLabels.Count; i++)
             {
+                dataset = CHART_DATA_SETS_TEMPLATE;
                 dataset = dataset.Replace("DATASET_LABEL", datasetLabels.ElementAt(i));
 
                 var dataSetTabValues = string.Join(',', dataSetsValues.ElementAt(i));
@@ -106,15 +103,11 @@ namespace PerfObserver.Charts
             {
                 Width = WIDTH,
                 Height = HEIGHT,
-                BackgroundColor = "white",
+                BackgroundColor = BACKGROUND_COLOR,
 
                 Config = config
             };
         }
-
-
-
-
 
         internal static void CreatePieChartsFromProcess(Process process)
         {
@@ -133,7 +126,7 @@ namespace PerfObserver.Charts
             string charType = "doughnut";
             string[] labelValues;
             object[] datasetValues;
-            bool fill = false;
+            bool fill = true;
             string borderColor = "transparent";
             string title;
             string subtitle;
@@ -183,7 +176,78 @@ namespace PerfObserver.Charts
                     ProcessInfo = new { s.ProcessName, s.SampleDateTime, s.AverageTime },
                     SubProcess = DataFilteredSampleStatRows
                         .Where(d => s.subProcessNames.Contains(d.ProcessName))
-                        .Select(e => new { e.ProcessName, e.AverageTime, e.SampleDateTime })
+                        .Select(d => new { d.ProcessName, d.AverageTime, d.SampleDateTime })
+                }).Where(o => o.SubProcess.Any());
+
+
+
+            var customRowsGroupByProcessName = customRows.GroupBy(c => c.ProcessInfo.ProcessName);
+            
+            var setOfDataSets = new List<DataSet[]>();
+            foreach (var group in customRowsGroupByProcessName)
+            {
+                var dataSets = new List<DataSet>
+                {
+                    new DataSet { Label = group.First().ProcessInfo.ProcessName, Values = group.Select(g => (object)g.ProcessInfo.AverageTime).ToArray() }
+                };
+                foreach (var sub in group.First().SubProcess.GroupBy(s => s.ProcessName))
+                {
+                    dataSets.Add(new DataSet() { Label = sub.Key, Values = sub.Select(g => (object)g.AverageTime).ToArray() });
+                }
+                setOfDataSets.Add(dataSets.ToArray());
+            }
+
+
+            // création des Graphiques
+            var currentChartsDirectory = $"{chartsProcessDirectory}/{process._methodInfo.Name}";
+            Directory.CreateDirectory(currentChartsDirectory);
+
+            Chart chart;
+            string charType = "bar";
+
+            string[] labelValues = customRowsGroupByProcessName.First().Select(c => c.ProcessInfo.SampleDateTime).ToArray();
+
+            string title;
+            string subtitle = "";
+            string config;
+
+
+            foreach (var dataSets in setOfDataSets)
+            {
+
+                bool[] fills = dataSets.Select(d => true).ToArray();
+              
+                string[] borderColors = dataSets.Select(d => "transparent").ToArray();
+                title = dataSets.First().Label;
+                config = GetGeneralConfigFromTemplate(charType, labelValues,
+                    dataSets.Select(d => d.Label).ToList(), dataSets.Select(d => d.Values).ToList(), fills, borderColors, title, subtitle);
+                chart = GetChartFromConfig(config);
+                chart.ToFile($"{currentChartsDirectory}/{title}.png");
+
+            }
+        }
+
+        internal static void CreateLineChartsFromProcess(Process process)
+        {
+            var processDirectory = DIRECTORY_BASE;
+            processDirectory += process.Project == null ? $"/{process._methodInfo.Name}" : $"/Projects/{process.Project!.Name}/{process._methodInfo.Name}";
+
+
+            var chartsProcessDirectory = $"{processDirectory}/Charts";
+            Directory.CreateDirectory(chartsProcessDirectory);
+            chartsProcessDirectory += "/LineCharts";
+            Directory.CreateDirectory(chartsProcessDirectory);
+
+            var sampleStatRows = XlsxUtils.GetSampleStatRowsFromProcess(process);
+            var DataFilteredSampleStatRows = sampleStatRows.Select(s => new { s.ProcessName, s.SampleDateTime, s.AverageTime, subProcessNames = s.SubProcessRatio.Select(r => r.SubProcessName) });
+            var customRows = DataFilteredSampleStatRows
+                .Select(s =>
+                new
+                {
+                    ProcessInfo = new { s.ProcessName, s.SampleDateTime, s.AverageTime },
+                    SubProcess = DataFilteredSampleStatRows
+                        .Where(d => s.subProcessNames.Contains(d.ProcessName))
+                        .Select(d => new { d.ProcessName, d.AverageTime, d.SampleDateTime })
                 }).Where(o => o.SubProcess.Any());
 
 
@@ -212,32 +276,52 @@ namespace PerfObserver.Charts
             Directory.CreateDirectory(currentChartsDirectory);
 
             Chart chart;
-            string charType = "bar";
-            string[] labelValues = customRows.Select(c => c.ProcessInfo.SampleDateTime).Distinct().ToArray();
+            string charType = "line";
+            string[] labelValues = customRowsGroupByProcessName.First().Select(c => c.ProcessInfo.SampleDateTime).ToArray();
 
             string title;
             string subtitle = "";
             string config;
 
-            
+
             foreach (var dataSets in setOfDataSets)
             {
-                
+
                 bool[] fills = dataSets.Select(d => false).ToArray();
-                string[] borderColors = dataSets.Select(d => "transparent").ToArray();
+                IList<string> colors = new List<string>() { "black", "red", "blue", "green", "purple", "pink", "yellow" };
+                // Associer une couleur à chaque label de data set
+                Dictionary<string, string> colorsByLabel = new Dictionary<string, string>();
+                var colorIndex = 0;
+                dataSets.Select(d => d.Label).Distinct().ToList().ForEach(l =>
+                {
+                    colorsByLabel.Add(l, colors.ElementAt(colorIndex));
+                    colorIndex++;
+                    colorIndex = colorIndex % colors.Count();
+                });
+                string[] borderColors = dataSets.Select(d => colorsByLabel.GetValueOrDefault(d.Label)).ToArray();
                 title = dataSets.First().Label;
                 config = GetGeneralConfigFromTemplate(charType, labelValues,
-                    dataSets.Select(d=>d.Label).ToList(), dataSets.Select(d => d.Values).ToList(), fills, borderColors, title , subtitle);
+                    dataSets.Select(d => d.Label).ToList(), dataSets.Select(d => d.Values).ToList(), fills, borderColors, title, subtitle);
                 chart = GetChartFromConfig(config);
                 chart.ToFile($"{currentChartsDirectory}/{title}.png");
 
             }
         }
-        internal class DataSet
-        {
-            internal string Label;
-            internal Object[] Values;
 
+        internal static void CreateChartsFromProcess(Process process)
+        {
+            CreatePieChartsFromProcess(process);
+            CreateBarChartsFromProcess(process);
+            CreateLineChartsFromProcess(process);
         }
     }
+
+
+    internal class DataSet
+    {
+        internal string Label;
+        internal Object[] Values;
+
+    }
+
 }

@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using PerfObserver.Reflection;
+using System.Diagnostics;
 
 namespace PerfObserver
 {
@@ -6,8 +7,8 @@ namespace PerfObserver
     {
         public static void SimplyLogPerf(Type targetType, string methodName, object[] ctorParameters = null, Type[] parametersTypes = null, object[] methodParameters = null)
         {
-            var methodInfo = MethodInfoAndInstanceRecoverer.GetMethodInfo(targetType, methodName, parametersTypes);
-            var instance = MethodInfoAndInstanceRecoverer.GetHostingInstance(targetType, methodInfo, ctorParameters);
+            var methodInfo = ReflectionUtils.GetMethodInfo(targetType, methodName, parametersTypes);
+            var instance = ReflectionUtils.GetHostingInstance(targetType, methodInfo, ctorParameters);
 
             object result;
             var sw = new Stopwatch();
@@ -35,29 +36,16 @@ namespace PerfObserver
 
         }
 
-        public static void LogProcessSampleStatistics(Process process, int depth = -1)
+        public static void LogProcessSampleStatistics(Process process, int sampleSize)
         {
-            const int SAMPLE_SIZE = 5;
-            depth++;
-            var sw = new Stopwatch();
-            sw.Start();
-            var sample = process.CreateSample(SAMPLE_SIZE);
-            var statistics = sample.Statistics;
-            Console.WriteLine($"Stat -_ Method Name : {process._methodInfo.Name} || AverageTime : {statistics!.AverageTime} ms  || StandartDeviation : {statistics.StandartDeviation} ||depth : {depth}  || parent : {process.Parent?._methodInfo.Name ?? "none"} || MainProcessusRatio (%): {statistics.MainProcessusRatio?.ToString() ?? "none"}");
-            sw.Stop();
-            Console.WriteLine($"Debug - non // : {sw.ElapsedMilliseconds} ms");
-            foreach (var proc in process.SubProcesses)
-                LogProcessSampleStatistics(proc, depth);
-
+            LogProcessSampleStatistics(process,sampleSize, -1);
         }
-
-        public static void LogProcessSampleStatisticsParallel(Process process, int depth = -1)
+        private static void LogProcessSampleStatistics(Process process,int sampleSize, int depth)
         {
-            const int SAMPLE_SIZE = 5;
             depth++;
             var sw = new Stopwatch();
             sw.Start();
-            var sample = process.CreateSample(SAMPLE_SIZE);
+            var sample = process.CreateSample(sampleSize);
             var statistics = sample.Statistics;
             Console.WriteLine($"Stat -_ Method Name : {process._methodInfo.Name} || AverageTime : {statistics!.AverageTime} ms  || StandartDeviation : {statistics.StandartDeviation} ||depth : {depth}  || parent : {process.Parent?._methodInfo.Name ?? "none"} || MainProcessusRatio (%): {statistics.MainProcessusRatio?.ToString() ?? "none"}");
             sw.Stop();
@@ -66,7 +54,7 @@ namespace PerfObserver
             var actions = new List<Action>();
             foreach(var proc in process.SubProcesses)
             {
-                actions.Add(()=>LogProcessSampleStatisticsParallel(proc, depth));
+                actions.Add(()=>LogProcessSampleStatistics(proc, sampleSize, depth));
             }
             if(actions.Any())
                 Parallel.Invoke(actions.ToArray());

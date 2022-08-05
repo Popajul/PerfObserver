@@ -1,8 +1,8 @@
 ﻿using System.Reflection;
 
-namespace PerfObserver
+namespace PerfObserver.Reflection
 {
-    internal static class MethodInfoAndInstanceRecoverer
+    internal static class ReflectionUtils
     {
         private static readonly BindingFlags bindingFlags = BindingFlags.IgnoreCase | BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static;
 
