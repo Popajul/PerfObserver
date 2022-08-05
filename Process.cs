@@ -8,22 +8,22 @@ namespace PerfObserver
     {
         private readonly object _instance;
         internal readonly MethodInfo _methodInfo;
-        private readonly object[]? _parameters;
+        private readonly object[] _parameters;
 
         private  readonly List<Process> _subProcesses;
         private readonly Stopwatch _sw;
 
-        internal readonly Process? Parent;
+        internal readonly Process Parent;
         internal List<Process> SubProcesses
         {
             get { return _subProcesses; }
             
         }
 
-        internal Project? Project;
+        internal Project Project;
 
         internal List<Sample> Samples;
-        internal Process(object instance, MethodInfo methodInfo, Project? project, object[]? parameters = null, Process? parent = null)
+        internal Process(object instance, MethodInfo methodInfo, Project project, object[] parameters = null, Process parent = null)
         {
             _instance = instance;
             _methodInfo = methodInfo;
@@ -34,7 +34,7 @@ namespace PerfObserver
             _sw = new();
             Project = project;
         }
-        internal Process(object instance, MethodInfo methodInfo, object[]? parameters = null, Process? parent = null)
+        internal Process(object instance, MethodInfo methodInfo, object[] parameters = null, Process parent = null)
         {
             _instance = instance;
             _methodInfo = methodInfo;

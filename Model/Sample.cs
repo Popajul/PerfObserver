@@ -5,7 +5,7 @@
         internal Process Process;
         internal List<long> StopWatchValues;
         internal int SampleSize;
-        internal Statistics? Statistics;
+        internal Statistics Statistics;
         internal int SampleIndex;
         internal string SampleDateTime;
         internal Sample (Process process, int sampleSize)

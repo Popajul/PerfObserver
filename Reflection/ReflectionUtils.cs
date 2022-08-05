@@ -1,8 +1,8 @@
 ﻿using System.Reflection;
 
-namespace PerfObserver
+namespace PerfObserver.Reflection
 {
-    internal static class MethodInfoAndInstanceRecoverer
+    internal static class ReflectionUtils
     {
         private static readonly BindingFlags bindingFlags = BindingFlags.IgnoreCase | BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static;
 
@@ -14,14 +14,14 @@ namespace PerfObserver
         /// <param name="parametersTypes"> Types to indentify method's signature </param>
         /// <returns>MethodInfo for this m</returns>
         /// <exception cref="Exception"> </exception>
-        internal static MethodInfo GetMethodInfo(Type targetType, string methodName,Type[]? parametersTypes = null)
+        internal static MethodInfo GetMethodInfo(Type targetType, string methodName,Type[] parametersTypes = null)
         {
             parametersTypes ??= Array.Empty<Type>();
 
             // Recover Method Info
             return targetType.GetMethod(methodName, bindingFlags, parametersTypes) ?? throw new Exception("ERROR_RECOVERING_METHOD_INFO");
         }
-        internal static object GetHostingInstance(Type targetType, MethodInfo methodInfo, object[]? ctorParameters = null)
+        internal static object GetHostingInstance(Type targetType, MethodInfo methodInfo, object[] ctorParameters = null)
         {
             object instance = targetType;
             if (!methodInfo.IsStatic)

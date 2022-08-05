@@ -1,10 +1,4 @@
-﻿using PerfObserver.Model;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Reflection;
 
 namespace PerfObserver
 {
@@ -14,9 +8,9 @@ namespace PerfObserver
 
         private readonly Type _targetType;
         private readonly string _methodName;
-        private readonly Type[]? _parametersTypes;
-        private readonly object[]? _ctorParameters;
-        private readonly object[]? _methodParameters;
+        private readonly Type[] _parametersTypes;
+        private readonly object[] _ctorParameters;
+        private readonly object[] _methodParameters;
 
         /// <summary>
         /// ctor
@@ -27,7 +21,7 @@ namespace PerfObserver
         /// <param name="ctorParameters"></param>
         /// <param name="methodParameters"></param>
         /// <exception cref="ArgumentNullException"></exception>
-        public ProcessFactory(Type targetType, string methode, Type[]? parametersTypes = null, object[]?  ctorParameters = null, object[]? methodParameters = null)
+        public ProcessFactory(Type targetType, string methode, Type[] parametersTypes = null, object[]  ctorParameters = null, object[] methodParameters = null)
         {
             _targetType = targetType ?? throw new ArgumentNullException(nameof(targetType));
             _methodName = methode ?? throw new ArgumentNullException(nameof(methode));
@@ -41,12 +35,12 @@ namespace PerfObserver
         /// </summary>
         /// <param name="parent"></param>
         /// <returns></returns>
-        public Process CreateProcess(Process? parent = null)
+        public Process CreateProcess(Process parent = null)
         {
             
             MethodInfo methodInfo = GetMethodInfo(_targetType, _methodName, _parametersTypes);
             object instance = GetHostingInstance(_targetType, methodInfo, _ctorParameters);
-            Process process = new Process(instance, methodInfo, _methodParameters, parent);
+            Process process = new(instance, methodInfo, _methodParameters, parent);
             if(parent !=null)
                 parent.AddSubProcess(process);
             return process;
@@ -60,7 +54,7 @@ namespace PerfObserver
         /// <param name="parametersTypes"> Types to indentify method's signature </param>
         /// <returns>MethodInfo for this m</returns>
         /// <exception cref="Exception"> </exception>
-        private MethodInfo GetMethodInfo(Type targetType, string methodName, Type[]? parametersTypes = null)
+        private MethodInfo GetMethodInfo(Type targetType, string methodName, Type[] parametersTypes = null)
         {
             parametersTypes ??= Array.Empty<Type>();
 
@@ -75,7 +69,7 @@ namespace PerfObserver
         /// <param name="ctorParameters"></param>
         /// <returns></returns>
         /// <exception cref="Exception"></exception>
-        private object GetHostingInstance(Type targetType, MethodInfo methodInfo, object[]? ctorParameters = null)
+        private object GetHostingInstance(Type targetType, MethodInfo methodInfo, object[] ctorParameters = null)
         {
             object instance = targetType;
             if (!methodInfo.IsStatic)
