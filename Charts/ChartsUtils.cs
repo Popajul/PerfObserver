@@ -7,10 +7,11 @@ namespace PerfObserver.Charts
 {
     internal static class ChartsUtils
     {
-        internal static readonly string DIRECTORY_BASE = $"{Directory.GetCurrentDirectory()}{ConfigurationManager.AppSettings.Get("workbookFolderPath")}";
-        internal static readonly int WIDTH = 1000;
-        internal static readonly int HEIGHT = 600;
-        internal static readonly string BACKGROUND_COLOR = "white";
+        #region properties
+        private static readonly string DIRECTORY_BASE = $"{Directory.GetCurrentDirectory()}{ConfigurationManager.AppSettings.Get("workbookFolderPath")}";
+        private static readonly int WIDTH = 1000;
+        private static readonly int HEIGHT = 600;
+        private static readonly string BACKGROUND_COLOR = "white";
 
         private static readonly string CHART_CONFIG_GENERAL_TEMPLATE =
             @"{
@@ -41,82 +42,19 @@ namespace PerfObserver.Charts
                     fill:FILL_BOOL_VALUE,
                     borderColor:'BORDER_COLOR'
                     }";
-        private static string GetGeneralConfigFromTemplate(string chartType, string[] labelValues, List<string> datasetLabels, List<object[]> dataSetsValues, bool[] fills, string[] borderColors, string title, string subTitle)
+        #endregion
+
+        internal static void CreateChartsFromProcess(Process process)
         {
-            var config = CHART_CONFIG_GENERAL_TEMPLATE;
-
-            config = config.Replace("TYPE", chartType);
-
-            var labelTabValues = string.Join(',', labelValues.Select(s => $"'{s}'"));
-            config = config.Replace("LABEL_TAB_VALUES", labelTabValues);
-
-            var datasets = new List<string>();
-
-
-            string dataset;
-            for (int i = 0; i < datasetLabels.Count; i++)
-            {
-                dataset = CHART_DATA_SETS_TEMPLATE;
-                dataset = dataset.Replace("DATASET_LABEL", datasetLabels.ElementAt(i));
-
-                var dataSetTabValues = string.Join(',', dataSetsValues.ElementAt(i));
-                dataset = dataset.Replace("DATASET_TAB_VALUES", dataSetTabValues);
-
-                dataset = dataset.Replace("FILL_BOOL_VALUE", fills.ElementAt(i).ToString().ToLower());
-                dataset = dataset.Replace("BORDER_COLOR", borderColors.ElementAt(i));
-                datasets.Add(dataset);
-            }
-
-            config = config.Replace("DATASETS", string.Join(",\r\n", datasets));
-            config = config.Replace("MAIN_TITLE", title);
-            config = config.Replace("SUB_TITLE", subTitle);
-
-            return config;
+            CreatePieChartsFromProcess(process);
+            CreateBarChartsFromProcess(process);
+            CreateLineChartsFromProcess(process);
         }
-
-        private static string GetPieConfigFromTemplate(string chartType, string[] labelValues, object[] dataSetsValues, bool fill, string borderColor, string title, string subTitle)
-        {
-            var config = CHART_CONFIG_GENERAL_TEMPLATE;
-
-            config = config.Replace("TYPE", chartType);
-
-            var labelTabValues = string.Join(',', labelValues.Select(s => $"'{s}'"));
-            config = config.Replace("LABEL_TAB_VALUES", labelTabValues);
-
-            string dataset = PIE_CHART_DATA_SETS_TEMPLATE;
-
-
-            var dataSetTabValues = string.Join(',', dataSetsValues.Select(v => v.ToString().Replace(',', '.')));
-            dataset = dataset.Replace("DATASET_TAB_VALUES", dataSetTabValues);
-
-            dataset = dataset.Replace("FILL_BOOL_VALUE", fill.ToString().ToLower());
-            dataset = dataset.Replace("BORDER_COLOR", borderColor);
-
-            config = config.Replace("DATASETS", string.Join(",\r\n", dataset));
-            config = config.Replace("MAIN_TITLE", title);
-            config = config.Replace("SUB_TITLE", subTitle);
-
-            return config;
-        }
-        private static Chart GetChartFromConfig(string config)
-        {
-            Console.WriteLine("Asking new chart to External Api");
-            return new()
-            {
-                Width = WIDTH,
-                Height = HEIGHT,
-                BackgroundColor = BACKGROUND_COLOR,
-
-                Config = config
-            };
-        }
-
         internal static void CreatePieChartsFromProcess(Process process)
         {
             var processDirectory = GetProcessDataFileDirectory(process, "PieCharts");
 
             var sampleStatRows = XlsxUtils.GetSampleStatRowsFromProcess(process);
-
             Chart chart;
             string charType = "doughnut";
             string[] labelValues;
@@ -154,7 +92,7 @@ namespace PerfObserver.Charts
         }
         internal static void CreateBarChartsFromProcess(Process process)
         {
-            string processDirectory = GetProcessDataFileDirectory(process,"BarCharts");
+            string processDirectory = GetProcessDataFileDirectory(process, "BarCharts");
 
             var sampleStatRows = XlsxUtils.GetSampleStatRowsFromProcess(process);
             var DataFilteredSampleStatRows = sampleStatRows.Select(s => new { s.ProcessName, s.SampleDateTime, s.AverageTime, subProcessNames = s.SubProcessRatio.Select(r => r.SubProcessName) });
@@ -171,7 +109,7 @@ namespace PerfObserver.Charts
 
 
             var customRowsGroupByProcessName = customRows.GroupBy(c => c.ProcessInfo.ProcessName);
-            
+
             var setOfDataSets = new List<DataSet[]>();
             foreach (var group in customRowsGroupByProcessName)
             {
@@ -203,7 +141,7 @@ namespace PerfObserver.Charts
             {
 
                 bool[] fills = dataSets.Select(d => true).ToArray();
-              
+
                 string[] borderColors = dataSets.Select(d => "transparent").ToArray();
                 title = dataSets.First().Label;
                 config = GetGeneralConfigFromTemplate(charType, labelValues,
@@ -213,7 +151,6 @@ namespace PerfObserver.Charts
 
             }
         }
-
         internal static void CreateLineChartsFromProcess(Process process)
         {
             string processDirectory = GetProcessDataFileDirectory(process, "LineCharts");
@@ -285,32 +222,91 @@ namespace PerfObserver.Charts
             }
         }
 
+
+        private static string GetGeneralConfigFromTemplate(string chartType, string[] labelValues, List<string> datasetLabels, List<object[]> dataSetsValues, bool[] fills, string[] borderColors, string title, string subTitle)
+        {
+            var config = CHART_CONFIG_GENERAL_TEMPLATE;
+
+            config = config.Replace("TYPE", chartType);
+
+            var labelTabValues = string.Join(',', labelValues.Select(s => $"'{s}'"));
+            config = config.Replace("LABEL_TAB_VALUES", labelTabValues);
+
+            var datasets = new List<string>();
+
+
+            string dataset;
+            for (int i = 0; i < datasetLabels.Count; i++)
+            {
+                dataset = CHART_DATA_SETS_TEMPLATE;
+                dataset = dataset.Replace("DATASET_LABEL", datasetLabels.ElementAt(i));
+
+                var dataSetTabValues = string.Join(',', dataSetsValues.ElementAt(i));
+                dataset = dataset.Replace("DATASET_TAB_VALUES", dataSetTabValues);
+
+                dataset = dataset.Replace("FILL_BOOL_VALUE", fills.ElementAt(i).ToString().ToLower());
+                dataset = dataset.Replace("BORDER_COLOR", borderColors.ElementAt(i));
+                datasets.Add(dataset);
+            }
+
+            config = config.Replace("DATASETS", string.Join(",\r\n", datasets));
+            config = config.Replace("MAIN_TITLE", title);
+            config = config.Replace("SUB_TITLE", subTitle);
+
+            return config;
+        }
+        private static string GetPieConfigFromTemplate(string chartType, string[] labelValues, object[] dataSetsValues, bool fill, string borderColor, string title, string subTitle)
+        {
+            var config = CHART_CONFIG_GENERAL_TEMPLATE;
+
+            config = config.Replace("TYPE", chartType);
+
+            var labelTabValues = string.Join(',', labelValues.Select(s => $"'{s}'"));
+            config = config.Replace("LABEL_TAB_VALUES", labelTabValues);
+
+            string dataset = PIE_CHART_DATA_SETS_TEMPLATE;
+
+
+            var dataSetTabValues = string.Join(',', dataSetsValues.Select(v => v.ToString().Replace(',', '.')));
+            dataset = dataset.Replace("DATASET_TAB_VALUES", dataSetTabValues);
+
+            dataset = dataset.Replace("FILL_BOOL_VALUE", fill.ToString().ToLower());
+            dataset = dataset.Replace("BORDER_COLOR", borderColor);
+
+            config = config.Replace("DATASETS", string.Join(",\r\n", dataset));
+            config = config.Replace("MAIN_TITLE", title);
+            config = config.Replace("SUB_TITLE", subTitle);
+
+            return config;
+        }
+        private static Chart GetChartFromConfig(string config)
+        {
+            Console.WriteLine("Asking new chart to External Api");
+            return new()
+            {
+                Width = WIDTH,
+                Height = HEIGHT,
+                BackgroundColor = BACKGROUND_COLOR,
+
+                Config = config
+            };
+        }
         private static string GetProcessDataFileDirectory(Process process, string chartType = null)
         {
             var processDirectory = DIRECTORY_BASE;
-            processDirectory += process.Project == null ? $"/{process._methodInfo.Name}" : $"/Projects/{process.Project!.Name}/{process._methodInfo.Name}";
+            processDirectory += process.Project == null ? $"/{process.Name}" : $"/Projects/{process.Project!.Name}/{process.Name}";
 
             if(chartType != null)
-                processDirectory = $"{processDirectory}/Charts/{chartType}/{process._methodInfo.Name}";
+                processDirectory = $"{processDirectory}/Charts/{chartType}/{process.Name}";
 
             Directory.CreateDirectory(processDirectory);
             return processDirectory;
         }
 
-        internal static void CreateChartsFromProcess(Process process)
+        sealed class DataSet
         {
-            CreatePieChartsFromProcess(process);
-            CreateBarChartsFromProcess(process);
-            CreateLineChartsFromProcess(process);
+            internal string Label;
+            internal Object[] Values;
         }
     }
-
-
-    internal class DataSet
-    {
-        internal string Label;
-        internal Object[] Values;
-
-    }
-
 }
