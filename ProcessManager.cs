@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace PerfObserver
 {
-    public class ProcessManager
+    public static class ProcessManager
     {
         /// <summary>
         /// Create process 
@@ -19,7 +19,7 @@ namespace PerfObserver
         /// <param name="ctorParameters"> Parameters to build hosting type</param>
         /// <param name="methodParameters"> Parameters value to invoke process method</param>
         /// <returns>a new process</returns>
-        public Process CreateProcess(Type targetType, string methode, Type[] parametersTypes = null, object[] ctorParameters = null, object[] methodParameters = null)
+        public static Process CreateProcess(Type targetType, string methode, Type[] parametersTypes = null, object[] ctorParameters = null, object[] methodParameters = null)
         {
             ProcessFactory factory = new (targetType, methode, parametersTypes, ctorParameters, methodParameters);
             return factory.CreateProcess();
@@ -35,12 +35,12 @@ namespace PerfObserver
         /// <param name="ctorParameters"></param>
         /// <param name="methodParameters"></param>
         /// <returns>new child process from parents </returns>
-        public Process CreateSubProcess(Process parent, Type targetType, string methode, Type[] parametersTypes = null, object[] ctorParameters = null, object[] methodParameters = null)
+        public static Process CreateSubProcess(Process parent, Type targetType, string methode, Type[] parametersTypes = null, object[] ctorParameters = null, object[] methodParameters = null)
         {
             ProcessFactory factory = new(targetType, methode, parametersTypes, ctorParameters, methodParameters);
             return factory.CreateProcess(parent);
         }
-        public void CreateSample(Process process , int sampleSize, bool createSubProcessSample = true)
+        public static void CreateSample(Process process , int sampleSize, bool createSubProcessSample = true)
         {
             
             if (sampleSize <= 0)
@@ -61,12 +61,12 @@ namespace PerfObserver
         /// Save Sample Data to xlsxFile
         /// </summary>
         /// <param name="process"></param>
-        public void SaveSampleDataToFile(Process process) => XlsxUtils.CreateProcessXLSXFile(process);
+        public static void SaveSampleDataToFile(Process process) => XlsxUtils.CreateProcessXLSXFile(process);
 
-        public void CreateCharts(Process process) => ChartsUtils.CreateChartsFromProcess(process);
-        public void CreatePieCharts(Process process) => ChartsUtils.CreatePieChartsFromProcess(process);
-        public void CreateBarCharts(Process process) => ChartsUtils.CreateBarChartsFromProcess(process);
-        public void CreateLineCharts(Process process) => ChartsUtils.CreateLineChartsFromProcess(process);
+        public static void CreateCharts(Process process) => ChartsUtils.CreateChartsFromProcess(process);
+        public static void CreatePieCharts(Process process) => ChartsUtils.CreatePieChartsFromProcess(process);
+        public static void CreateBarCharts(Process process) => ChartsUtils.CreateBarChartsFromProcess(process);
+        public static void CreateLineCharts(Process process) => ChartsUtils.CreateLineChartsFromProcess(process);
 
     }
 }
