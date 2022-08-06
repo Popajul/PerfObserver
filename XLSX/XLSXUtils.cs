@@ -1,6 +1,7 @@
 ﻿using ExcelDataReader;
 using PerfObserver.Model;
 using PicoXLSX;
+using System.Configuration;
 using System.Data;
 using System.Text;
 
@@ -9,8 +10,8 @@ namespace PerfObserver.XLSX
     internal static class XlsxUtils
     {
         // directory to complete with /Projects/ProjectName/ProcessusName or just /ProcessusName
-        internal static readonly string DIRECTORY_BASE = $"{Directory.GetCurrentDirectory()}/Workbook";
-
+        internal static readonly string DIRECTORY_BASE = $"{Directory.GetCurrentDirectory()}{ConfigurationManager.AppSettings.Get("workbookFolderPath")}";
+        private static readonly string PASSWORD = $"{ConfigurationManager.AppSettings.Get("password")}";
         /// <summary>
         /// Create a worbook from an existing template xlsx with a new workbookName
         /// null values for workbookDirectory and workbookName will create an intended to overwrite sourceFile workbook
@@ -29,7 +30,7 @@ namespace PerfObserver.XLSX
                 throw new FileNotFoundException($"ERROR_FILE \"{sourceDirectory}/{sourcefileName}\" NOT_FOUND");
 
             // // set source file full name
-            var sourceFileFullName = $"{sourceDirectory}/{sourcefileName}";
+            var sourceFileFullName = $"{sourceDirectory}\\{sourcefileName}";
 
             // // workbook directory
             workbookDirectory ??= sourceDirectory;
@@ -37,7 +38,7 @@ namespace PerfObserver.XLSX
             workbookName ??= sourcefileName;
 
             // // set workbook full name
-            var workbookFullName = $"{workbookDirectory}/{workbookName}";
+            var workbookFullName = $"{workbookDirectory}\\{workbookName}";
 
 
             // Register special encoding 
@@ -46,7 +47,7 @@ namespace PerfObserver.XLSX
 
             // open fileStream with read access and get reader
             FileStream fs = File.OpenRead(sourceFileFullName);
-            IExcelDataReader excelDataReader = ExcelReaderFactory.CreateOpenXmlReader(fs);
+            IExcelDataReader excelDataReader = GetProtectedExcelDataReader(fs);
 
             // get xlsx file as dataSet
             var conf = new ExcelDataSetConfiguration()
@@ -59,15 +60,14 @@ namespace PerfObserver.XLSX
             DataSet dataSet = excelDataReader.AsDataSet(conf);
 
             // create new workbook
-            Workbook workbook = new(workbookFullName, "tempsheetName");
-
+            Workbook workbook = CreateProtectedWorkbook(workbookFullName);
             // get array from dataset
             var tablesCount = dataSet.Tables.Count;
 
             var tables = new DataTable[tablesCount];
-            
-                dataSet.Tables.CopyTo(tables, 0);
-            
+
+            dataSet.Tables.CopyTo(tables, 0);
+
             int index = -1;
             foreach (var table in tables)
             {
@@ -112,38 +112,43 @@ namespace PerfObserver.XLSX
 
         }
 
+        private static Workbook CreateProtectedWorkbook(string workbookFullName, string sheetName = null)
+        {
+            sheetName ??= "tempsheetName";
+            Workbook workbook = new(workbookFullName, sheetName);
+            workbook.SetWorkbookProtection(false, true, true, PASSWORD);
+            return workbook;
+        }
+
+        private static IExcelDataReader GetProtectedExcelDataReader(FileStream fs)
+        {
+            
+            ExcelReaderConfiguration readerConf = new() { Password = PASSWORD, };
+            IExcelDataReader excelDataReader = ExcelReaderFactory.CreateOpenXmlReader(fs, readerConf);
+            return excelDataReader;
+        }
+
+        private static string GetProcessDataFileDirectory(Process process)
+        {
+            var processDirectory = DIRECTORY_BASE;
+            processDirectory += process.Project == null ? $"/{process._methodInfo.Name}" : $"/Projects/{process.Project!.Name}/{process._methodInfo.Name}";
+            Directory.CreateDirectory(processDirectory);
+            return processDirectory;
+        }
         internal static void CreateProcessXLSXFile(Process process)
         {
-            Console.WriteLine($"Creating XLSX file for process : {process._methodInfo.Name}");
-            string WorkBookFolderName = "Workbook";
-            string ProjectFolderName = "Projects";
-
-            // Create directories
-            string workbookDirectory = $"{Directory.GetCurrentDirectory()}/{WorkBookFolderName}";
-
-            Directory.CreateDirectory(workbookDirectory);
-
-            var directory = workbookDirectory;
-            if (process.Project != null)
-            {
-                directory += $"/{ProjectFolderName}";
-                Directory.CreateDirectory(directory);
-                directory += $"/{process.Project.Name}";
-                Directory.CreateDirectory(directory);
-            }
-
-            directory += $"/{process._methodInfo.Name}";
-            Directory.CreateDirectory(directory);
-
+            var processDirectory = GetProcessDataFileDirectory(process);
+            var processName = process._methodInfo.Name;
             // get XLSX FullPath
-            var wbFullName = $"{directory}/{process._methodInfo.Name}.xlsx";
+            var wbFullName = $"{processDirectory}\\{processName}.xlsx";
 
 
             // Get or create workbook and add data
             Workbook workbook;
             if (File.Exists(wbFullName))
             {
-                workbook = CreateWorkbookFromXLSXFile(directory, $"{process._methodInfo.Name}.xlsx", null, null);
+                workbook = CreateWorkbookFromXLSXFile(processDirectory, $"{processName}.xlsx", null, null);
+                
                 AddProcessAndSubProcessWorksheets(process, workbook);
                 var worksheets = workbook.Worksheets;
                 worksheets.ForEach(s =>
@@ -155,7 +160,7 @@ namespace PerfObserver.XLSX
             else
             {
                 // creation du workbook
-                workbook = new(wbFullName, "feuille0");
+                workbook = CreateProtectedWorkbook(wbFullName);
 
                 AddProcessAndSubProcessWorksheets(process, workbook);
 
@@ -257,8 +262,7 @@ namespace PerfObserver.XLSX
         
         private static Workbook GetWorkBookProcessFromXlsx(Process process)
         {
-            var processDirectory = DIRECTORY_BASE;
-            processDirectory += process.Project == null ? $"/{process._methodInfo.Name}" : $"/Projects/{process.Project!.Name}/{process._methodInfo.Name}";
+            var processDirectory = GetProcessDataFileDirectory(process);
             var xlsxFileName = $"{process._methodInfo.Name}.xlsx";
 
             // if file does not exists a FileNotFoudException is thrown

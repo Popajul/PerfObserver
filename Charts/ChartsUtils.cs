@@ -1,11 +1,13 @@
 ﻿using PerfObserver.Model;
 using PerfObserver.XLSX;
 using QuickChart;
+using System.Configuration;
+
 namespace PerfObserver.Charts
 {
     internal static class ChartsUtils
     {
-        internal static readonly string DIRECTORY_BASE = $"{Directory.GetCurrentDirectory()}/Workbook";
+        internal static readonly string DIRECTORY_BASE = $"{Directory.GetCurrentDirectory()}{ConfigurationManager.AppSettings.Get("workbookFolderPath")}";
         internal static readonly int WIDTH = 1000;
         internal static readonly int HEIGHT = 600;
         internal static readonly string BACKGROUND_COLOR = "white";
@@ -111,14 +113,7 @@ namespace PerfObserver.Charts
 
         internal static void CreatePieChartsFromProcess(Process process)
         {
-            var processDirectory = DIRECTORY_BASE;
-            processDirectory += process.Project == null ? $"/{process._methodInfo.Name}" : $"/Projects/{process.Project!.Name}/{process._methodInfo.Name}";
-
-
-            var chartsProcessDirectory = $"{processDirectory}/Charts";
-            Directory.CreateDirectory(chartsProcessDirectory);
-            chartsProcessDirectory += "/Samples";
-            Directory.CreateDirectory(chartsProcessDirectory);
+            var processDirectory = GetProcessDataFileDirectory(process, "PieCharts");
 
             var sampleStatRows = XlsxUtils.GetSampleStatRowsFromProcess(process);
 
@@ -135,8 +130,9 @@ namespace PerfObserver.Charts
             foreach (var row in sampleStatRows.Where(s => s.SubProcessRatio.Any()))
             {
                 var formatDateTime = row.SampleDateTime.Replace("/", "").Replace(' ', '_').Replace(":", "");
-                var sampleDirectory = $"{chartsProcessDirectory}/{formatDateTime}";
+                var sampleDirectory = $"{processDirectory}/{formatDateTime}";
                 Directory.CreateDirectory(sampleDirectory);
+
                 var currentChartPath = $"{sampleDirectory}/{row.ProcessName}_{formatDateTime}.png";
                 if (!File.Exists(currentChartPath))
                 {
@@ -158,14 +154,7 @@ namespace PerfObserver.Charts
         }
         internal static void CreateBarChartsFromProcess(Process process)
         {
-            var processDirectory = DIRECTORY_BASE;
-            processDirectory += process.Project == null ? $"/{process._methodInfo.Name}" : $"/Projects/{process.Project!.Name}/{process._methodInfo.Name}";
-
-
-            var chartsProcessDirectory = $"{processDirectory}/Charts";
-            Directory.CreateDirectory(chartsProcessDirectory);
-            chartsProcessDirectory += "/BarCharts";
-            Directory.CreateDirectory(chartsProcessDirectory);
+            string processDirectory = GetProcessDataFileDirectory(process,"BarCharts");
 
             var sampleStatRows = XlsxUtils.GetSampleStatRowsFromProcess(process);
             var DataFilteredSampleStatRows = sampleStatRows.Select(s => new { s.ProcessName, s.SampleDateTime, s.AverageTime, subProcessNames = s.SubProcessRatio.Select(r => r.SubProcessName) });
@@ -199,8 +188,6 @@ namespace PerfObserver.Charts
 
 
             // création des Graphiques
-            var currentChartsDirectory = $"{chartsProcessDirectory}/{process._methodInfo.Name}";
-            Directory.CreateDirectory(currentChartsDirectory);
 
             Chart chart;
             string charType = "bar";
@@ -222,21 +209,14 @@ namespace PerfObserver.Charts
                 config = GetGeneralConfigFromTemplate(charType, labelValues,
                     dataSets.Select(d => d.Label).ToList(), dataSets.Select(d => d.Values).ToList(), fills, borderColors, title, subtitle);
                 chart = GetChartFromConfig(config);
-                chart.ToFile($"{currentChartsDirectory}/{title}.png");
+                chart.ToFile($"{processDirectory}/{title}.png");
 
             }
         }
 
         internal static void CreateLineChartsFromProcess(Process process)
         {
-            var processDirectory = DIRECTORY_BASE;
-            processDirectory += process.Project == null ? $"/{process._methodInfo.Name}" : $"/Projects/{process.Project!.Name}/{process._methodInfo.Name}";
-
-
-            var chartsProcessDirectory = $"{processDirectory}/Charts";
-            Directory.CreateDirectory(chartsProcessDirectory);
-            chartsProcessDirectory += "/LineCharts";
-            Directory.CreateDirectory(chartsProcessDirectory);
+            string processDirectory = GetProcessDataFileDirectory(process, "LineCharts");
 
             var sampleStatRows = XlsxUtils.GetSampleStatRowsFromProcess(process);
             var DataFilteredSampleStatRows = sampleStatRows.Select(s => new { s.ProcessName, s.SampleDateTime, s.AverageTime, subProcessNames = s.SubProcessRatio.Select(r => r.SubProcessName) });
@@ -271,9 +251,6 @@ namespace PerfObserver.Charts
             }
 
 
-            // création des Graphiques
-            var currentChartsDirectory = $"{chartsProcessDirectory}/{process._methodInfo.Name}";
-            Directory.CreateDirectory(currentChartsDirectory);
 
             Chart chart;
             string charType = "line";
@@ -290,7 +267,7 @@ namespace PerfObserver.Charts
                 bool[] fills = dataSets.Select(d => false).ToArray();
                 IList<string> colors = new List<string>() { "black", "red", "blue", "green", "purple", "pink", "yellow" };
                 // Associer une couleur à chaque label de data set
-                Dictionary<string, string> colorsByLabel = new ();
+                Dictionary<string, string> colorsByLabel = new();
                 var colorIndex = 0;
                 dataSets.Select(d => d.Label).Distinct().ToList().ForEach(l =>
                 {
@@ -303,9 +280,21 @@ namespace PerfObserver.Charts
                 config = GetGeneralConfigFromTemplate(charType, labelValues,
                     dataSets.Select(d => d.Label).ToList(), dataSets.Select(d => d.Values).ToList(), fills, borderColors, title, subtitle);
                 chart = GetChartFromConfig(config);
-                chart.ToFile($"{currentChartsDirectory}/{title}.png");
+                chart.ToFile($"{processDirectory}/{title}.png");
 
             }
+        }
+
+        private static string GetProcessDataFileDirectory(Process process, string chartType = null)
+        {
+            var processDirectory = DIRECTORY_BASE;
+            processDirectory += process.Project == null ? $"/{process._methodInfo.Name}" : $"/Projects/{process.Project!.Name}/{process._methodInfo.Name}";
+
+            if(chartType != null)
+                processDirectory = $"{processDirectory}/Charts/{chartType}/{process._methodInfo.Name}";
+
+            Directory.CreateDirectory(processDirectory);
+            return processDirectory;
         }
 
         internal static void CreateChartsFromProcess(Process process)

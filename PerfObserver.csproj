@@ -12,6 +12,7 @@
     <PackageReference Include="ExcelDataReader.DataSet" Version="3.6.0" />
     <PackageReference Include="PicoXLSX" Version="2.11.4" />
     <PackageReference Include="QuickChart" Version="2.3.0" />
+    <PackageReference Include="System.Configuration.ConfigurationManager" Version="6.0.0" />
     <PackageReference Include="System.Text.Encoding.CodePages" Version="7.0.0-preview.6.22324.4" />
   </ItemGroup>
 
