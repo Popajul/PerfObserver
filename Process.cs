@@ -6,13 +6,14 @@ namespace PerfObserver
 {
     public class Process
     {
+        #region properties
         private readonly object _instance;
-        internal readonly MethodInfo _methodInfo;
+        private readonly MethodInfo _methodInfo;
         private readonly object[] _parameters;
-
         private  readonly List<Process> _subProcesses;
         private readonly Stopwatch _sw;
 
+        internal readonly string Name;
         internal readonly Process Parent;
         internal List<Process> SubProcesses
         {
@@ -23,12 +24,16 @@ namespace PerfObserver
         internal Project Project;
 
         internal List<Sample> Samples;
+        #endregion properties
+
+        #region ctors
         internal Process(object instance, MethodInfo methodInfo, Project project, object[] parameters = null, Process parent = null)
         {
             _instance = instance;
             _methodInfo = methodInfo;
             _parameters = parameters;
             _subProcesses = new();
+            Name = methodInfo.Name;
             Parent = parent;
             Samples = new();
             _sw = new();
@@ -40,11 +45,12 @@ namespace PerfObserver
             _methodInfo = methodInfo;
             _parameters = parameters;
             _subProcesses = new();
+            Name = methodInfo.Name;
             Parent = parent;
             Samples = new();
             _sw = new();
         }
-
+        #endregion
         internal void AddSubProcess(Process process)
         {
             _subProcesses.Add(process);
@@ -70,6 +76,7 @@ namespace PerfObserver
 
         internal Sample CreateSample(int sampleSize)
         {
+            Console.WriteLine($"CreateSample : {this._methodInfo.Name}");
             Sample sample = new(this, sampleSize)
             {
                 SampleIndex = Samples.Count
@@ -86,7 +93,7 @@ namespace PerfObserver
 
         internal void CreateSampleForProcessAndSubProcess(int sampleSize)
         {
-            Console.WriteLine($"CreateSampleForProcessAndSubProcess : {this._methodInfo.Name}");
+            Console.WriteLine($"CreateSampleForProcess : {this._methodInfo.Name}");
             CreateSample(sampleSize);
             var actions = new List<Action>();
             foreach (Process proc in _subProcesses)

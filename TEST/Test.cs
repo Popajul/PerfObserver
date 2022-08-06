@@ -23,18 +23,18 @@ namespace PerfObserver.TEST
         private static readonly string METHOD_NAME_2_3 = "FakeMethod20";
         private static readonly int SAMPLE_SIZE = 3;
 
-        internal static void BasicPerfLogger_SimplyLog()
+        internal static void PerfLogger_LogProcess_1()
         {
             // Test with private non static method
-            BasicPerfLogger.SimplyLogPerf(TARGET_TYPE_1, METHOD_NAME_1, CTOR_PARAMETERS_1);
+            PerfLogger.LogProcess(TARGET_TYPE_1, METHOD_NAME_1, CTOR_PARAMETERS_1);
 
             // Test with Static public Method and method's Parameters
-            BasicPerfLogger.SimplyLogPerf(TARGET_TYPE_1, METHOD_NAME_1, NULL_CTOR_PARAMETERS, PARAMETERS_TYPES_1, METHOD_PARAMETERS_1);
+            PerfLogger.LogProcess(TARGET_TYPE_1, METHOD_NAME_1, NULL_CTOR_PARAMETERS, PARAMETERS_TYPES_1, METHOD_PARAMETERS_1);
 
             // Test With invalid Method Name
             try
             {
-                BasicPerfLogger.SimplyLogPerf(TARGET_TYPE_1, INVALID_METHOD_NAME, NULL_CTOR_PARAMETERS, PARAMETERS_TYPES_1, METHOD_PARAMETERS_1);
+                PerfLogger.LogProcess(TARGET_TYPE_1, INVALID_METHOD_NAME, NULL_CTOR_PARAMETERS, PARAMETERS_TYPES_1, METHOD_PARAMETERS_1);
             }
             catch (Exception e)
             {
@@ -45,7 +45,7 @@ namespace PerfObserver.TEST
 
             try
             {
-                BasicPerfLogger.SimplyLogPerf(TARGET_TYPE_1, METHOD_NAME_1, NULL_CTOR_PARAMETERS, PARAMETERS_TYPES_1, METHOD_PARAMETERS_1_2);
+                PerfLogger.LogProcess(TARGET_TYPE_1, METHOD_NAME_1, NULL_CTOR_PARAMETERS, PARAMETERS_TYPES_1, METHOD_PARAMETERS_1_2);
             }
             catch (Exception e)
             {
@@ -53,68 +53,31 @@ namespace PerfObserver.TEST
             }
 
             // Test with void return Method
-            BasicPerfLogger.SimplyLogPerf(TARGET_TYPE_1, METHOD_NAME_1_2, CTOR_PARAMETERS_1);
+            PerfLogger.LogProcess(TARGET_TYPE_1, METHOD_NAME_1_2, CTOR_PARAMETERS_1);
         }
 
-        internal static void BasicPerfLogger_LogProcess()
+        internal static void PerfLogger_LogProcess_2()
         {
-            ProcessFactory _factory;
-            Process _process0;
-            Process _process_1_1;
+            ConfigureTestProcess(out Process _process0);
 
-            _factory = new(TARGET_TYPE_2, METHOD_NAME_2);
-            _process0 = _factory.CreateProcess();
-
-            _factory = new(TARGET_TYPE_2, METHOD_NAME_2_1);
-            _ = _factory.CreateProcess(_process0);
-
-            _factory = new(TARGET_TYPE_2, METHOD_NAME_2_2);
-            _process_1_1 = _factory.CreateProcess(_process0);
-
-            _factory = new(TARGET_TYPE_2, METHOD_NAME_2_3);
-            _ = _factory.CreateProcess(_process_1_1);
-
-            BasicPerfLogger.LogProcessPerf(_process0);
+            PerfLogger.LogProcess(_process0);
         }
 
-        internal static void BasicPerfLogger_LogProcessSampleStatistics()
+        internal static void PerfLogger_LogSampleProcess()
         {
-            ProcessFactory _factory;
-            Process _process0;
-            Process _process_1_1;
-            ConfigureTestProcess(out _factory, out _process0, out _process_1_1);
-            BasicPerfLogger.LogProcessSampleStatistics(_process0, 5);
+            ConfigureTestProcess(out Process _process0);
+            PerfLogger.LogProcessSample(_process0, 5);
         }
 
-        private static void ConfigureTestProcess(out ProcessFactory _factory, out Process _process0, out Process _process_1_1)
+
+        internal static void Process_CreateSample_XlsxUtils()
         {
-            _factory = new(TARGET_TYPE_2, METHOD_NAME_2);
-            _process0 = _factory.CreateProcess();
 
-            _factory = new(TARGET_TYPE_2, METHOD_NAME_2_1);
-            _ = _factory.CreateProcess(_process0);
-
-            _factory = new(TARGET_TYPE_2, METHOD_NAME_2_2);
-            _process_1_1 = _factory.CreateProcess(_process0);
-
-            _factory = new(TARGET_TYPE_2, METHOD_NAME_2_3);
-            _ = _factory.CreateProcess(_process_1_1);
-        }
-
-        internal static void Process_CreateSampleForProcessAndSubProcess_XlsxUtils()
-        {
-            ProcessFactory _factory;
-            Process _process0;
-            Process _process_1_1;
-
-            ConfigureTestProcess(out _factory, out _process0, out _process_1_1);
-            
-
+            ConfigureTestProcess(out Process _process0);
 
             for (int i = 0; i < 2; i++)
-            {
                 _process0.CreateSampleForProcessAndSubProcess(SAMPLE_SIZE);
-            }
+
 
             XlsxUtils.CreateProcessXLSXFile(_process0);
 
@@ -123,11 +86,8 @@ namespace PerfObserver.TEST
 
         internal static void ChartsUtils_CreateChartFromProcess()
         {
-            ProcessFactory _factory;
-            Process _process0;
-            Process _process_1_1;
 
-            ConfigureTestProcess(out _factory, out _process0, out _process_1_1);
+            ConfigureTestProcess(out Process _process0);
 
 
             for (int i = 0; i < 3; i++)
@@ -138,6 +98,44 @@ namespace PerfObserver.TEST
  
             XlsxUtils.CreateProcessXLSXFile(_process0);
             ChartsUtils.CreateChartsFromProcess(_process0);
+        }
+
+        internal static void ProcessManagerTests()
+        {
+            ProcessManager manager = new ();
+
+            Process _process0 = manager.CreateProcess(TARGET_TYPE_2, METHOD_NAME_2);
+            _ = manager.CreateSubProcess(_process0, TARGET_TYPE_2, METHOD_NAME_2_1);
+
+            Process _process_1_2 = manager.CreateSubProcess(_process0, TARGET_TYPE_2, METHOD_NAME_2_2);
+            _= manager.CreateSubProcess(_process_1_2, TARGET_TYPE_2, METHOD_NAME_2_3);
+
+            manager.CreateSample(_process0, SAMPLE_SIZE, true);
+            
+            try
+            {
+                manager.CreateBarCharts(_process0);
+            }
+            catch(FileNotFoundException)
+            {
+                Console.WriteLine("Use \"manager.SaveSampleDataToFile\" before creating charts");
+            }
+
+            manager.SaveSampleDataToFile(_process0);
+            manager.CreateCharts(_process0);
+
+        }
+
+        private static void ConfigureTestProcess(out Process _process0)
+        {
+            ProcessManager manager = new();
+            _process0 = manager.CreateProcess(TARGET_TYPE_2, METHOD_NAME_2);
+
+            _ = manager.CreateSubProcess(_process0, TARGET_TYPE_2, METHOD_NAME_2_1);
+
+            var _process_1_1 = manager.CreateSubProcess(_process0, TARGET_TYPE_2, METHOD_NAME_2_2);
+
+            _ = manager.CreateSubProcess(_process_1_1, TARGET_TYPE_2, METHOD_NAME_2_3);
         }
     }
 }

@@ -4,15 +4,18 @@ using System.Reflection;
 namespace PerfObserver
 {
     /// <summary>
-    /// Point d'entrée Temporaire du programme afin de tester ces fonctionalité en cours de developpement
+    /// entry point to execute tests
     /// </summary>
     internal static class Program
     {
-        private static readonly Action SIMPLY_LOG = () => Test.BasicPerfLogger_SimplyLog();
-        private static readonly Action LOG_PROCESS = () => Test.BasicPerfLogger_LogProcess();
-        private static readonly Action LOG_STAT = () => Test.BasicPerfLogger_LogProcessSampleStatistics();
-        private static readonly Action CREATE_SAMPLE_XLSX = () => Test.Process_CreateSampleForProcessAndSubProcess_XlsxUtils();
+        #region ACTION TEST
+        private static readonly Action SIMPLY_LOG = () => Test.PerfLogger_LogProcess_1();
+        private static readonly Action LOG_PROCESS = () => Test.PerfLogger_LogProcess_2();
+        private static readonly Action LOG_STAT = () => Test.PerfLogger_LogSampleProcess();
+        private static readonly Action CREATE_SAMPLE_XLSX = () => Test.Process_CreateSample_XlsxUtils();
         private static readonly Action CHARTS = () => Test.ChartsUtils_CreateChartFromProcess();
+        private static readonly Action MANAGER = () => Test.ProcessManagerTests();
+        #endregion
         private static void ExecuteTest(Action Test) => Test.Invoke();
         private static void ExecuteTests() =>
 

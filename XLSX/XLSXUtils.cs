@@ -12,13 +12,62 @@ namespace PerfObserver.XLSX
         // directory to complete with /Projects/ProjectName/ProcessusName or just /ProcessusName
         internal static readonly string DIRECTORY_BASE = $"{Directory.GetCurrentDirectory()}{ConfigurationManager.AppSettings.Get("workbookFolderPath")}";
         private static readonly string PASSWORD = $"{ConfigurationManager.AppSettings.Get("password")}";
-        /// <summary>
-        /// Create a worbook from an existing template xlsx with a new workbookName
-        /// null values for workbookDirectory and workbookName will create an intended to overwrite sourceFile workbook
-        /// </summary>
-        /// <param name="fileName"> fullPath for source file </param>
-        /// <param name="workbookName"></param>
-        /// <returns>Workbook</returns>
+
+     
+        internal static void CreateProcessXLSXFile(Process process)
+        {
+            var processDirectory = GetProcessDataFileDirectory(process);
+            var processName = process.Name;
+            // get XLSX FullPath
+            var wbFullName = $"{processDirectory}\\{processName}.xlsx";
+
+
+            // Get or create workbook and add data
+            Workbook workbook;
+            if (File.Exists(wbFullName))
+            {
+                workbook = CreateWorkbookFromXLSXFile(processDirectory, $"{processName}.xlsx", null, null);
+                
+                AddProcessAndSubProcessWorksheets(process, workbook);
+                var worksheets = workbook.Worksheets;
+                worksheets.ForEach(s =>
+                {
+
+                    s.DefaultColumnWidth = 40.25f;
+                });
+            }
+            else
+            {
+                // creation du workbook
+                workbook = CreateProtectedWorkbook(wbFullName);
+
+                AddProcessAndSubProcessWorksheets(process, workbook);
+
+                var worksheets = workbook.Worksheets;
+                worksheets.ForEach(s =>
+                {
+
+                    s.DefaultColumnWidth = 40.25f;
+                });
+                workbook.RemoveWorksheet(0);
+            }
+
+            var style = new Style() { CurrentFont = new() { Bold = true } };
+            workbook.Worksheets.ForEach(s =>
+            {
+                s.Cells.Select(c=>c.Value).Where(c => c.CellAddress2.Row == 0 || c.CellAddress2.Column == 0).ToList().ForEach(c =>
+                {
+                    c.SetStyle(style);
+                });
+            });
+            workbook.Save();
+        }
+
+        internal static List<SampleStatRow> GetSampleStatRowsFromProcess(Process process)
+        {
+            return GetSampleStatRowsFromWorkook(GetWorkBookProcessFromXlsx(process));
+        }
+
         private static Workbook CreateWorkbookFromXLSXFile(string sourceDirectory, string sourcefileName, string workbookDirectory, string workbookName)
         {
             // Checking
@@ -112,6 +161,71 @@ namespace PerfObserver.XLSX
 
         }
 
+
+        private static Workbook GetWorkBookProcessFromXlsx(Process process)
+        {
+            var processDirectory = GetProcessDataFileDirectory(process);
+            var xlsxFileName = $"{process.Name}.xlsx";
+
+            // if file does not exists a FileNotFoudException is thrown
+            return XlsxUtils.CreateWorkbookFromXLSXFile(processDirectory, xlsxFileName, null, null);
+        }
+        private static List<SampleStatRow> GetSampleStatRowsFromWorkook(Workbook workbook)
+        {
+            List<SampleStatRow> list = new();
+            var statSheets = workbook.Worksheets.Where(w => w.SheetName.Contains("STAT")).ToList();
+            foreach (var sheet in statSheets)
+            {
+                var processName = sheet.SheetName.Split("_STAT").First();
+                var cells = sheet.Cells.Select(c => c.Value);
+                var firstRowData = cells.Where(c => c.CellAddress2.Row == 0).Select(c => (string)c.Value);
+                var subProcessNames = firstRowData.Where(v => v.Contains("Ratio"));
+                var numberOfSubProcess = subProcessNames.Count();
+
+                var cellsData = cells.Where(c => c.CellAddress2.Row != 0).Select(c => new { c.RowNumber, c.Value });
+                var dataRowCount = cellsData.Count() / firstRowData.Count();
+                // iterate on row data
+                IEnumerable<object> currentRawData;
+
+                for (int i = 1; i <= dataRowCount; i++)
+                {
+                    currentRawData = cellsData.Where(c => c.RowNumber == i).Select(c => c.Value);
+                    var dataStat = currentRawData.SkipLast(numberOfSubProcess);
+                    string sampleDateTime = (string)dataStat.ElementAt(0);
+                    int averageTime = Convert.ToInt32(dataStat.ElementAt(1));
+                    double standartDeviation = (double)dataStat.ElementAt(2);
+                    int minValue = Convert.ToInt32(dataStat.ElementAt(3));
+                    int maxValue = Convert.ToInt32(dataStat.ElementAt(4));
+
+                    var sublist = new List<SubProcessRatio>();
+                    var processRatioData = currentRawData.Except(dataStat);
+
+                    for (int j = 0; j < numberOfSubProcess; j++)
+                    {
+                        sublist.Add(new()
+                        {
+                            SubProcessName = subProcessNames.ElementAt(j).Replace("_MainProcessusRatio", ""),
+                            MainProcessusRatio = (double)processRatioData.ElementAt(j)
+                        });
+                    }
+
+                    list.Add(new()
+                    {
+                        ProcessName = processName,
+                        AverageTime = averageTime,
+                        MaxValue = maxValue,
+                        MinValue = minValue,
+                        SubProcessRatio = sublist,
+                        SampleDateTime = sampleDateTime,
+                        StandartDeviation = standartDeviation
+
+                    });
+
+
+                }
+            }
+            return list;
+        }
         private static Workbook CreateProtectedWorkbook(string workbookFullName, string sheetName = null)
         {
             sheetName ??= "tempsheetName";
@@ -122,66 +236,10 @@ namespace PerfObserver.XLSX
 
         private static IExcelDataReader GetProtectedExcelDataReader(FileStream fs)
         {
-            
+
             ExcelReaderConfiguration readerConf = new() { Password = PASSWORD, };
             IExcelDataReader excelDataReader = ExcelReaderFactory.CreateOpenXmlReader(fs, readerConf);
             return excelDataReader;
-        }
-
-        private static string GetProcessDataFileDirectory(Process process)
-        {
-            var processDirectory = DIRECTORY_BASE;
-            processDirectory += process.Project == null ? $"/{process._methodInfo.Name}" : $"/Projects/{process.Project!.Name}/{process._methodInfo.Name}";
-            Directory.CreateDirectory(processDirectory);
-            return processDirectory;
-        }
-        internal static void CreateProcessXLSXFile(Process process)
-        {
-            var processDirectory = GetProcessDataFileDirectory(process);
-            var processName = process._methodInfo.Name;
-            // get XLSX FullPath
-            var wbFullName = $"{processDirectory}\\{processName}.xlsx";
-
-
-            // Get or create workbook and add data
-            Workbook workbook;
-            if (File.Exists(wbFullName))
-            {
-                workbook = CreateWorkbookFromXLSXFile(processDirectory, $"{processName}.xlsx", null, null);
-                
-                AddProcessAndSubProcessWorksheets(process, workbook);
-                var worksheets = workbook.Worksheets;
-                worksheets.ForEach(s =>
-                {
-
-                    s.DefaultColumnWidth = 40.25f;
-                });
-            }
-            else
-            {
-                // creation du workbook
-                workbook = CreateProtectedWorkbook(wbFullName);
-
-                AddProcessAndSubProcessWorksheets(process, workbook);
-
-                var worksheets = workbook.Worksheets;
-                worksheets.ForEach(s =>
-                {
-
-                    s.DefaultColumnWidth = 40.25f;
-                });
-                workbook.RemoveWorksheet(0);
-            }
-
-            var style = new Style() { CurrentFont = new() { Bold = true } };
-            workbook.Worksheets.ForEach(s =>
-            {
-                s.Cells.Select(c=>c.Value).Where(c => c.CellAddress2.Row == 0 || c.CellAddress2.Column == 0).ToList().ForEach(c =>
-                {
-                    c.SetStyle(style);
-                });
-            });
-            workbook.Save();
         }
 
 
@@ -192,12 +250,12 @@ namespace PerfObserver.XLSX
         private static void AddProcessWorksheet(Process process, Workbook workbook, int depth)
         {
             depth++;
-            string sheet1Name = $"{process._methodInfo.Name}_STAT_{depth}";
-            string sheet2Name = $"{process._methodInfo.Name}_SWVal_{depth}";
+            string sheet1Name = $"{process.Name}_STAT_{depth}";
+            string sheet2Name = $"{process.Name}_SWVal_{depth}";
 
             // set header row sheet 1
             List<string> sheet1HeaderNames = new string[] { "SampleDateTime", "AverageTime", "StandartDeviation", "MinValue", "MaxValue" }.ToList();
-            sheet1HeaderNames.AddRange(process.SubProcesses.Select(p => $"{p._methodInfo.Name}_MainProcessusRatio"));
+            sheet1HeaderNames.AddRange(process.SubProcesses.Select(p => $"{p.Name}_MainProcessusRatio"));
 
 
             bool isNew = false;
@@ -246,7 +304,7 @@ namespace PerfObserver.XLSX
                     var numberOfRow = secondWorksheet.GetLastRowNumber() + 1;
                     columnNumber = secondWorksheet.Cells.Count / numberOfRow;
                 }
-               
+
                 secondWorksheet.AddCell(sample.SampleDateTime, columnNumber, 0);
                 secondWorksheet.AddCellRange(stopWatchValues.AsReadOnly(), new Cell.Address(columnNumber, 1), new Cell.Address(columnNumber, stopWatchValues.Count));
 
@@ -259,75 +317,13 @@ namespace PerfObserver.XLSX
             }
         }
 
-        
-        private static Workbook GetWorkBookProcessFromXlsx(Process process)
+
+        private static string GetProcessDataFileDirectory(Process process)
         {
-            var processDirectory = GetProcessDataFileDirectory(process);
-            var xlsxFileName = $"{process._methodInfo.Name}.xlsx";
-
-            // if file does not exists a FileNotFoudException is thrown
-            return XlsxUtils.CreateWorkbookFromXLSXFile(processDirectory, xlsxFileName, null, null);
-        }
-        private static List<SampleStatRow> GetSampleStatRowsFromWorkook(Workbook workbook)
-        {
-            List<SampleStatRow> list = new();
-            var statSheets = workbook.Worksheets.Where(w => w.SheetName.Contains("STAT")).ToList();
-            foreach (var sheet in statSheets)
-            {
-                var processName = sheet.SheetName.Split("_STAT").First();
-                var cells = sheet.Cells.Select(c => c.Value);
-                var firstRowData = cells.Where(c => c.CellAddress2.Row == 0).Select(c => (string)c.Value);
-                var subProcessNames = firstRowData.Where(v => v.Contains("Ratio"));
-                var numberOfSubProcess = subProcessNames.Count();
-
-                var cellsData = cells.Where(c => c.CellAddress2.Row != 0).Select(c => new { c.RowNumber, c.Value });
-                var dataRowCount = cellsData.Count() / firstRowData.Count();
-                // iterate on row data
-                IEnumerable<object> currentRawData;
-
-                for (int i = 1; i <= dataRowCount; i++)
-                {
-                    currentRawData = cellsData.Where(c => c.RowNumber == i).Select(c => c.Value);
-                    var dataStat = currentRawData.SkipLast(numberOfSubProcess);
-                    string sampleDateTime = (string)dataStat.ElementAt(0);
-                    int averageTime = Convert.ToInt32(dataStat.ElementAt(1));
-                    double standartDeviation = (double)dataStat.ElementAt(2);
-                    int minValue = Convert.ToInt32(dataStat.ElementAt(3));
-                    int maxValue = Convert.ToInt32(dataStat.ElementAt(4));
-
-                    var sublist = new List<SubProcessRatio>();
-                    var processRatioData = currentRawData.Except(dataStat);
-
-                    for (int j = 0; j < numberOfSubProcess; j++)
-                    {
-                        sublist.Add(new()
-                        {
-                            SubProcessName = subProcessNames.ElementAt(j).Replace("_MainProcessusRatio",""),
-                            MainProcessusRatio = (double)processRatioData.ElementAt(j)
-                        });
-                    }
-
-                    list.Add(new()
-                    {
-                        ProcessName = processName,
-                        AverageTime = averageTime,
-                        MaxValue = maxValue,
-                        MinValue = minValue,
-                        SubProcessRatio = sublist,
-                        SampleDateTime = sampleDateTime,
-                        StandartDeviation = standartDeviation
-
-                    });
-
-
-                }
-            }
-            return list;
-        }
-
-        internal static List<SampleStatRow> GetSampleStatRowsFromProcess(Process process)
-        {
-            return GetSampleStatRowsFromWorkook(GetWorkBookProcessFromXlsx(process));
+            var processDirectory = DIRECTORY_BASE;
+            processDirectory += process.Project == null ? $"/{process.Name}" : $"/Projects/{process.Project!.Name}/{process.Name}";
+            Directory.CreateDirectory(processDirectory);
+            return processDirectory;
         }
 
     }

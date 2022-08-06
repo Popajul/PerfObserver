@@ -4,6 +4,7 @@ namespace PerfObserver
 {
     public class ProcessFactory
     {
+        #region properties
         private readonly BindingFlags bindingFlags = BindingFlags.IgnoreCase | BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static;
 
         private readonly Type _targetType;
@@ -11,6 +12,7 @@ namespace PerfObserver
         private readonly Type[] _parametersTypes;
         private readonly object[] _ctorParameters;
         private readonly object[] _methodParameters;
+        #endregion
 
         /// <summary>
         /// ctor
@@ -21,7 +23,7 @@ namespace PerfObserver
         /// <param name="ctorParameters"></param>
         /// <param name="methodParameters"></param>
         /// <exception cref="ArgumentNullException"></exception>
-        public ProcessFactory(Type targetType, string methode, Type[] parametersTypes = null, object[]  ctorParameters = null, object[] methodParameters = null)
+        internal ProcessFactory(Type targetType, string methode, Type[] parametersTypes = null, object[]  ctorParameters = null, object[] methodParameters = null)
         {
             _targetType = targetType ?? throw new ArgumentNullException(nameof(targetType));
             _methodName = methode ?? throw new ArgumentNullException(nameof(methode));
@@ -35,7 +37,7 @@ namespace PerfObserver
         /// </summary>
         /// <param name="parent"></param>
         /// <returns></returns>
-        public Process CreateProcess(Process parent = null)
+        internal Process CreateProcess(Process parent = null)
         {
             
             MethodInfo methodInfo = GetMethodInfo(_targetType, _methodName, _parametersTypes);
