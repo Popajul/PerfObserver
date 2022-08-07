@@ -74,6 +74,24 @@ namespace PerfObserver
             return _sw.ElapsedMilliseconds;
         }
 
+        internal long ObserveMany(long count)
+        {
+
+            try
+            {
+                _sw.Restart();
+                for(int i = 0; i < count; i++)
+                    _ = _methodInfo.Invoke(_instance, _parameters);
+                _sw.Stop();
+            }
+            catch (ArgumentException e)
+            {
+                Console.WriteLine(e.StackTrace);
+                throw new ArgumentException("ERROR_INVALID_METHODS_PARAMETERS");
+            }
+
+            return _sw.ElapsedMilliseconds;
+        }
         internal Sample CreateSample(int sampleSize)
         {
             Console.WriteLine($"CreateSample : {this._methodInfo.Name}");
