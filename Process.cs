@@ -9,7 +9,7 @@ namespace PerfObserver
         #region properties
         private readonly object _instance;
         private readonly MethodInfo _methodInfo;
-        private readonly object[] _parameters;
+        internal readonly object[] _parameters;
         private  readonly List<Process> _subProcesses;
         private readonly Stopwatch _sw;
 
