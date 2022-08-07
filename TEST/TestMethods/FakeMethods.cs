@@ -30,5 +30,11 @@ namespace TEST.TestMethods
         {
             Thread.Sleep(sleepTime);
         }
+
+        public static void FakeMethodOUT(out string str)
+        {
+            str = "bonjour";
+            Console.WriteLine(str);
+        }
     }
 }

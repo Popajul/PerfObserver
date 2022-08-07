@@ -4,7 +4,7 @@ namespace PerfObserver.Reflection
 {
     internal static class ReflectionUtils
     {
-        private static readonly BindingFlags bindingFlags = BindingFlags.IgnoreCase | BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static;
+        private static readonly BindingFlags bindingFlags = BindingFlags.IgnoreCase | BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static ;
 
         /// <summary>
         /// GetMethodInfo
@@ -16,8 +16,7 @@ namespace PerfObserver.Reflection
         /// <exception cref="Exception"> </exception>
         internal static MethodInfo GetMethodInfo(Type targetType, string methodName,Type[] parametersTypes = null)
         {
-            parametersTypes ??= Array.Empty<Type>();
-
+            parametersTypes ??= Type.EmptyTypes;
             // Recover Method Info
             return targetType.GetMethod(methodName, bindingFlags, parametersTypes) ?? throw new Exception("ERROR_RECOVERING_METHOD_INFO");
         }
