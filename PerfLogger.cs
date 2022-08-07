@@ -1,4 +1,5 @@
 ﻿using PerfObserver.Reflection;
+using System;
 using System.Diagnostics;
 
 namespace PerfObserver
@@ -28,24 +29,34 @@ namespace PerfObserver
 
         public static void LogProcess(Process process)
         {
-            LogProcess(process,-1);
+            LogProcess(process, -1);
         }
-        public static void LogProcess(Process process, int depth)
+
+        public static void CompareProcess(Process process1, Process process2, int numberOfExecutions)
+        {
+            long time1 = 0;
+            long time2 = 0;
+            for (int i = 0; i < numberOfExecutions; i++)
+            {
+                time1 += process1.Observe();
+                time2 += process2.Observe();
+            }
+            Console.WriteLine($"PERF: {process1.Name} || {time1} ms  || param: {string.Join(',', process1._parameters)}    || x: {numberOfExecutions} times");
+            Console.WriteLine($"PERF: {process2.Name} || {time2} ms  || param: {string.Join(',', process2._parameters)}    || x: {numberOfExecutions} times");
+        }
+        public static void LogProcessSample(Process process, int sampleSize)
+        {
+            LogProcessSample(process, sampleSize, -1);
+        }
+        private static void LogProcess(Process process, int depth)
         {
             depth++;
             var elapsed_time = process.Observe();
-            Console.WriteLine($"PERF - Method Name : {process.Name} || elapsedTime : {elapsed_time} ms  || depth : {depth}  || parent : {process.Parent?.Name ?? "none"}");
+            Console.WriteLine($"PERF: {process.Name} || {elapsed_time} ms  || param: {string.Join(',', process._parameters)}    || parent : {process.Parent?.Name ?? ""}");
             foreach (var proc in process.SubProcesses)
                 LogProcess(proc, depth);
-
-
         }
-
-        public static void LogProcessSample(Process process, int sampleSize)
-        {
-            LogProcessSample(process,sampleSize, -1);
-        }
-        private static void LogProcessSample(Process process,int sampleSize, int depth)
+        private static void LogProcessSample(Process process, int sampleSize, int depth)
         {
             depth++;
             var sw = new Stopwatch();
@@ -57,11 +68,11 @@ namespace PerfObserver
             Console.WriteLine($"Debug - // : {sw.ElapsedMilliseconds} ms");
 
             var actions = new List<Action>();
-            foreach(var proc in process.SubProcesses)
+            foreach (var proc in process.SubProcesses)
             {
-                actions.Add(()=>LogProcessSample(proc, sampleSize, depth));
+                actions.Add(() => LogProcessSample(proc, sampleSize, depth));
             }
-            if(actions.Any())
+            if (actions.Any())
                 Parallel.Invoke(actions.ToArray());
         }
     }
