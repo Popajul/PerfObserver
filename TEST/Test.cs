@@ -102,40 +102,39 @@ namespace PerfObserver.TEST
 
         internal static void ProcessManagerTests()
         {
-            ProcessManager manager = new ();
+            
 
-            Process _process0 = manager.CreateProcess(TARGET_TYPE_2, METHOD_NAME_2);
-            _ = manager.CreateSubProcess(_process0, TARGET_TYPE_2, METHOD_NAME_2_1);
+            Process _process0 = ProcessManager.CreateProcess(TARGET_TYPE_2, METHOD_NAME_2);
+            _ = ProcessManager.CreateSubProcess(_process0, TARGET_TYPE_2, METHOD_NAME_2_1);
 
-            Process _process_1_2 = manager.CreateSubProcess(_process0, TARGET_TYPE_2, METHOD_NAME_2_2);
-            _= manager.CreateSubProcess(_process_1_2, TARGET_TYPE_2, METHOD_NAME_2_3);
+            Process _process_1_2 = ProcessManager.CreateSubProcess(_process0, TARGET_TYPE_2, METHOD_NAME_2_2);
+            _= ProcessManager.CreateSubProcess(_process_1_2, TARGET_TYPE_2, METHOD_NAME_2_3);
 
-            manager.CreateSample(_process0, SAMPLE_SIZE, true);
+            ProcessManager.CreateSample(_process0, SAMPLE_SIZE, true);
             
             try
             {
-                manager.CreateBarCharts(_process0);
+                ProcessManager.CreateBarCharts(_process0);
             }
             catch(FileNotFoundException)
             {
-                Console.WriteLine("Use \"manager.SaveSampleDataToFile\" before creating charts");
+                Console.WriteLine("Use \"ProcessManager.SaveSampleDataToFile\" before creating charts");
             }
 
-            manager.SaveSampleDataToFile(_process0);
-            manager.CreateCharts(_process0);
+            ProcessManager.SaveSampleDataToFile(_process0);
+            ProcessManager.CreateCharts(_process0);
 
         }
 
         private static void ConfigureTestProcess(out Process _process0)
         {
-            ProcessManager manager = new();
-            _process0 = manager.CreateProcess(TARGET_TYPE_2, METHOD_NAME_2);
+            _process0 = ProcessManager.CreateProcess(TARGET_TYPE_2, METHOD_NAME_2);
 
-            _ = manager.CreateSubProcess(_process0, TARGET_TYPE_2, METHOD_NAME_2_1);
+            _ = ProcessManager.CreateSubProcess(_process0, TARGET_TYPE_2, METHOD_NAME_2_1);
 
-            var _process_1_1 = manager.CreateSubProcess(_process0, TARGET_TYPE_2, METHOD_NAME_2_2);
+            var _process_1_1 = ProcessManager.CreateSubProcess(_process0, TARGET_TYPE_2, METHOD_NAME_2_2);
 
-            _ = manager.CreateSubProcess(_process_1_1, TARGET_TYPE_2, METHOD_NAME_2_3);
+            _ = ProcessManager.CreateSubProcess(_process_1_1, TARGET_TYPE_2, METHOD_NAME_2_3);
         }
     }
 }

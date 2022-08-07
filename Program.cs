@@ -9,14 +9,18 @@ namespace PerfObserver
     internal static class Program
     {
         #region ACTION TEST
-        private static readonly Action SIMPLY_LOG = () => Test.PerfLogger_LogProcess_1();
-        private static readonly Action LOG_PROCESS = () => Test.PerfLogger_LogProcess_2();
-        private static readonly Action LOG_STAT = () => Test.PerfLogger_LogSampleProcess();
-        private static readonly Action CREATE_SAMPLE_XLSX = () => Test.Process_CreateSample_XlsxUtils();
-        private static readonly Action CHARTS = () => Test.ChartsUtils_CreateChartFromProcess();
-        private static readonly Action MANAGER = () => Test.ProcessManagerTests();
+#pragma warning disable S1144 // Unused private types or members should be removed
+#pragma warning disable IDE0052 // Supprimer les membres privés non lus
+        static readonly Action SIMPLY_LOG = () => Test.PerfLogger_LogProcess_1();
+        static readonly Action LOG_PROCESS = () => Test.PerfLogger_LogProcess_2();
+        static readonly Action LOG_STAT = () => Test.PerfLogger_LogSampleProcess();
+        static readonly Action CREATE_SAMPLE_XLSX = () => Test.Process_CreateSample_XlsxUtils();
+        static readonly Action CHARTS = () => Test.ChartsUtils_CreateChartFromProcess();
+        static readonly Action MANAGER = () => Test.ProcessManagerTests();
+#pragma warning restore S1144 // Unused private types or members should be removed
+#pragma warning restore IDE0052 // Supprimer les membres privés non lus
         #endregion
-        private static void ExecuteTest(Action Test) => Test.Invoke();
+
         private static void ExecuteTests() =>
 
             typeof(Program).GetMembers(BindingFlags.Static | BindingFlags.NonPublic).Where(m => m.MemberType == MemberTypes.Field)
