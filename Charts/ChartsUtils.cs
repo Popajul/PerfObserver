@@ -155,6 +155,7 @@ namespace PerfObserver.Charts
         {
             string processDirectory = GetProcessDataFileDirectory(process, "LineCharts");
 
+
             var sampleStatRows = XlsxUtils.GetSampleStatRowsFromProcess(process);
             var DataFilteredSampleStatRows = sampleStatRows.Select(s => new { s.ProcessName, s.SampleDateTime, s.AverageTime, subProcessNames = s.SubProcessRatio.Select(r => r.SubProcessName) });
             var customRows = DataFilteredSampleStatRows
@@ -165,9 +166,10 @@ namespace PerfObserver.Charts
                     SubProcess = DataFilteredSampleStatRows
                         .Where(d => s.subProcessNames.Contains(d.ProcessName))
                         .Select(d => new { d.ProcessName, d.AverageTime, d.SampleDateTime })
-                }).Where(o => o.SubProcess.Any());
+                });
 
-
+            if (process.SubProcesses.Any())
+                customRows = customRows.Where(o => o.SubProcess.Any());
 
             var customRowsGroupByProcessName = customRows.GroupBy(c => c.ProcessInfo.ProcessName);
             // maintenant un group = un graphique
@@ -296,7 +298,7 @@ namespace PerfObserver.Charts
             var processDirectory = DIRECTORY_BASE;
             processDirectory += process.Project == null ? $"/{process.Name}" : $"/Projects/{process.Project!.Name}/{process.Name}";
 
-            if(chartType != null)
+            if (chartType != null)
                 processDirectory = $"{processDirectory}/Charts/{chartType}/{process.Name}";
 
             Directory.CreateDirectory(processDirectory);
