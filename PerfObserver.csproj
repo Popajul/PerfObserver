@@ -1,10 +1,17 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>net6.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>disable</Nullable>
+    <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+    <Company></Company>
+    <Authors>Julien Tritz</Authors>
+    <Description>Outils de monitoring des performances
+Definissez vos processus à analyser et générer données et graphique</Description>
+    <EnforceCodeStyleInBuild>False</EnforceCodeStyleInBuild>
+    <Version>1.0.1-alpha</Version>
   </PropertyGroup>
 
   <ItemGroup>
