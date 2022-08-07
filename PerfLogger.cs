@@ -35,8 +35,8 @@ namespace PerfObserver
         public static void CompareProcess(Process process1, Process process2, int numberOfExecutions)
         {
             
-            Console.WriteLine($"PERF: {process1.Name} || {process1.ObserveMany(numberOfExecutions)} ms  || param: {string.Join(',', process1._parameters)}    || x: {numberOfExecutions} times");
-            Console.WriteLine($"PERF: {process2.Name} || {process2.ObserveMany(numberOfExecutions)} ms  || param: {string.Join(',', process2._parameters)}    || x: {numberOfExecutions} times");
+            Console.WriteLine($"PERF: {process1.Name} || {process1.ObserveMany(numberOfExecutions)}   || param: {string.Join(',', process1._parameters)}    || x: {numberOfExecutions} times");
+            Console.WriteLine($"PERF: {process2.Name} || {process2.ObserveMany(numberOfExecutions)}   || param: {string.Join(',', process2._parameters)}    || x: {numberOfExecutions} times");
         }
         public static void LogProcessSample(Process process, int sampleSize)
         {

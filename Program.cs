@@ -48,6 +48,7 @@ namespace PerfObserver
           
             Process process = ProcessManager.CreateProcess(typeof(FakeMethods), "FakeMethodOUT", new Type[] { typeof(string).MakeByRefType() }, null, new object[] {null});
             PerfLogger.LogProcessSample(process, 5);
+            PerfLogger.CompareProcess(process, process, 10);
 
             
         }

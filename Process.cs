@@ -74,7 +74,7 @@ namespace PerfObserver
             return _sw.ElapsedMilliseconds;
         }
 
-        internal long ObserveMany(long count)
+        internal TimeSpan ObserveMany(long count)
         {
 
             try
@@ -90,7 +90,7 @@ namespace PerfObserver
                 throw new ArgumentException("ERROR_INVALID_METHODS_PARAMETERS");
             }
 
-            return _sw.ElapsedMilliseconds;
+            return _sw.Elapsed;
         }
         internal Sample CreateSample(int sampleSize)
         {
