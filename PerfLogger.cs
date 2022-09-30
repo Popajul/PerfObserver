@@ -46,7 +46,7 @@ namespace PerfObserver
         {
             depth++;
             var elapsed_time = process.Observe();
-            Console.WriteLine($"PERF: {process.Name} || {elapsed_time} ms  || param: {string.Join(',', process._parameters)}    || parent : {process.Parent?.Name ?? ""}");
+            Console.WriteLine($"PERF: {process.Name} || {elapsed_time} ms  || param: {string.Join(',', process._parameters?? Enumerable.Empty<string>().ToArray())}    || parent : {process.Parent?.Name ?? ""}");
             foreach (var proc in process.SubProcesses)
                 LogProcess(proc, depth);
         }

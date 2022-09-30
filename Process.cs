@@ -56,7 +56,7 @@ namespace PerfObserver
             _subProcesses.Add(process);
         }
 
-        internal long Observe()
+        internal double Observe()
         {
             
             try
@@ -71,7 +71,7 @@ namespace PerfObserver
                 throw new ArgumentException("ERROR_INVALID_METHODS_PARAMETERS");
             }
             
-            return _sw.ElapsedMilliseconds;
+            return _sw.Elapsed.TotalMilliseconds;
         }
 
         internal TimeSpan ObserveMany(long count)
@@ -99,9 +99,12 @@ namespace PerfObserver
             {
                 SampleIndex = Samples.Count
             };
-
+            this.Observe();
             for (int i = 0; i < sampleSize; i++)
+            {
                 sample.StopWatchValues.Add(this.Observe());
+            }
+                
 
             sample.Statistics = new(sample);
 

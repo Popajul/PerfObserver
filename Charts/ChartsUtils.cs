@@ -1,4 +1,5 @@
-﻿using PerfObserver.Model;
+﻿using Microsoft.VisualBasic;
+using PerfObserver.Model;
 using PerfObserver.XLSX;
 using QuickChart;
 using System.Configuration;
@@ -15,20 +16,38 @@ namespace PerfObserver.Charts
 
         private static readonly string CHART_CONFIG_GENERAL_TEMPLATE =
             @"{
-                type: 'TYPE',
-                data: {
-                    labels: [LABEL_TAB_VALUES],
-                    datasets: [DATASETS]
-                },
-                options: {
-                    title: {
-                        display: true,
-                        text: ['MAIN_TITLE', 'SUB_TITLE'],
-                        font : {
-                            fontSize : 50
-                        }
-                    }
-                }
+                    type: 'TYPE',
+                    data: {
+                        labels: [LABEL_TAB_VALUES],
+                        datasets: [DATASETS]
+                    },
+                    options: {
+                        title: {
+                            display: true,
+                            text: ['MAIN_TITLE', 'SUB_TITLE'],
+                            font : {
+                                fontSize : 50
+                            }
+                        },
+                        responsive: true,
+                        scales: {
+						      xAxes: [
+						        {
+						          stacked: false,
+						        },
+						      ],
+						      yAxes: [
+						        {
+						          stacked: false,
+                                  min: 0,
+                                  ticks: {
+                                    suggestedMin: 0,
+                                    suggestedMax: SUGGESTED_MAX
+                                  }
+						        },
+						      ],
+						    },
+                    },
             }";
         private static readonly string CHART_DATA_SETS_TEMPLATE = @"{
                     label: 'DATASET_LABEL',
@@ -254,6 +273,8 @@ namespace PerfObserver.Charts
             config = config.Replace("DATASETS", string.Join(",\r\n", datasets));
             config = config.Replace("MAIN_TITLE", title);
             config = config.Replace("SUB_TITLE", subTitle);
+            var maxValue = dataSetsValues.SelectMany(v=>v).Max();
+            config = config.Replace("SUGGESTED_MAX", @$"{maxValue}");
 
             return config;
         }
@@ -278,6 +299,7 @@ namespace PerfObserver.Charts
             config = config.Replace("DATASETS", string.Join(",\r\n", dataset));
             config = config.Replace("MAIN_TITLE", title);
             config = config.Replace("SUB_TITLE", subTitle);
+            config = config.Replace("suggestedMax: SUGGESTED_MAX", "");
 
             return config;
         }

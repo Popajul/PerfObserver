@@ -198,7 +198,7 @@ namespace PerfObserver.XLSX
                     int maxValue = Convert.ToInt32(dataStat.ElementAt(4));
 
                     var sublist = new List<SubProcessRatio>();
-                    var processRatioData = currentRawData.Except(dataStat);
+                    var processRatioData = currentRawData.TakeLast(numberOfSubProcess);
 
                     for (int j = 0; j < numberOfSubProcess; j++)
                     {

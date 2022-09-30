@@ -10,10 +10,10 @@ namespace PerfObserver.Model
     {
         internal string ProcessName;
         internal string SampleDateTime { get; set; }
-        internal int AverageTime  { get; set; }
+        internal double AverageTime  { get; set; }
         internal double StandartDeviation { get; set; }
-        internal int MinValue { get; set; }
-        internal int MaxValue { get; set; }
+        internal double MinValue { get; set; }
+        internal double MaxValue { get; set; }
         internal List<SubProcessRatio> SubProcessRatio { get; set; }
     }
     internal class SubProcessRatio
